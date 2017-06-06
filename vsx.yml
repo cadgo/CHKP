@@ -1,0 +1,41 @@
+---
+- hosts: smc
+  vars:
+   LD: /opt/CPsuite-R80/fw1/oracle_oi/sdk:/opt/uf/SecureComputing/lib:/opt/KAV/ppl:/opt/KAV/lib:/opt/CPshrd-R80/lib:/opt/CPshrd-R80/web/Apache/2.2.0/lib:/opt/CPshrd-R80/database/postgresql/lib:/opt/CPshrd-R80/lib64:/opt/CPsuite-R80/fw1/lib:/opt/CPsuite-R80/fg1/lib:/opt/CPportal-R80/lib:/opt/CPrt-R80/lib:/opt/CPrt-R80/log_indexer/lib:/opt/CPuepm-R80/lib:/opt/CPuepm-R80/apache22/lib:/opt/CPdiag-R80/lib
+   instancias:
+      vsx2:
+         mgmtip: 172.45.67.254/24
+         externalip: 192.168.100.46/24
+         int_iface: eth4
+         ext_iface: eth3
+         df_gw: 192.168.100.1
+      vsx3:
+         mgmtip: 172.45.68.254/24
+         externalip: 192.168.100.47/24
+         int_iface: eth6
+         ext_iface: eth5
+         df_gw: 192.168.100.1
+   smc_user: admin
+   smc_pass: vpn123
+   smcip: smc
+  remote_user: admin
+  gather_facts: False
+  tasks:
+  - name: VSX deploy
+    raw: export LD_LIBRARY_PATH={{ LD }}; /opt/CPsuite-R80/fw1/bin/vsx_provisioning_tool -s localhost -u {{ smc_user }} -p {{ smc_pass }} -o add vd name {{ item.key }} vsx VSX_Orchest , add interface name {{ item.value.int_iface }} ip {{ item.value.mgmtip }}
+    with_dict: '{{ instancias }}'
+    register: out
+
+  - debug: var=out.stdout_lines
+
+  - name: VSX add iface
+    raw: export LD_LIBRARY_PATH={{ LD }}; /opt/CPsuite-R80/fw1/bin/vsx_provisioning_tool -s localhost -u {{ smc_user }} -p {{ smc_pass }} -o  add interface vd {{ item.key }} name {{ item.value.ext_iface }} ip {{ item.value.externalip }}
+    with_dict: '{{ instancias }}'
+    register: out2
+
+  - debug: var=out2.stdout_lines
+
+  - name: Rutas por defecto
+    raw: export LD_LIBRARY_PATH={{ LD }}; /opt/CPsuite-R80/fw1/bin/vsx_provisioning_tool -s localhost -u {{ smc_user }} -p {{ smc_pass }} -o  add route  vd {{ item.key }} destination default next_hop {{ item.value.df_gw }}
+    with_dict: '{{ instancias }}'
+

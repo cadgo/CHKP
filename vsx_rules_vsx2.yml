@@ -1,0 +1,132 @@
+---
+- hosts: localhost                        # Note #2 in the Description section
+  tasks:
+  - name: login                           # You have to login to the management
+                                            # server before running any commands
+    check_point_mgmt:
+      command: login
+      parameters:
+        username: "{{mgmt_user}}"           # Variables set in /etc/ansible/hosts, to avoid needing
+        password: "{{mgmt_password}}"       # to type your login details in every playbook.
+        management: "{{mgmt_server}}"
+      fingerprint: "70:42:E5:E7:89:1E:D9:8B:B2:EC:3F:9A:BB:EA:2D:7F:A3:D4:33:05"
+    register: login_response                # Register the output from the login
+  
+  - name: "create-new-policy-package"
+    check_point_mgmt:
+      command: add-package
+      parameters:
+       name: "vsx2"
+       comments: "created"
+       color: "green"
+       threat-prevention: "false"
+       access: "true"
+      session-data: "{{ login_response }}"
+  
+  - name: "vsx2_group_net"
+    check_point_mgmt:
+      command: add-group
+      parameters:
+       name: "vsx2_grp_intnet"
+      session-data: "{{ login_response }}"
+
+  - name: "vsx2_internal_net"
+    check_point_mgmt:
+      command: add-network
+      parameters:
+       name: "vsx2_int_net"
+       subnet: "172.45.67.0"
+       subnet-mask: "255.255.255.0"
+       groups: "vsx2_grp_intnet"
+      session-data: "{{ login_response }}"
+      
+  - name: "vsx2 host protected"
+    check_point_mgmt:
+      command: add-host
+      parameters:
+       name: "pc_172.45.67.20"
+       ip-address: "172.45.67.20"
+       nat-settings:
+        auto-rule: "true"
+        method: "static"
+        ip-address: "192.168.100.99"
+        install-on: "vsx2"     
+      session-data: "{{ login_response }}"
+  
+  - name: "Seccion de entrada"
+    check_point_mgmt:
+      command: add-access-section
+      parameters:
+       name: "Reglas de entrada"
+       layer: "vsx2 Network"
+       position: "top"
+      session-data: "{{ login_response }}"
+      
+  # - name: "publish"
+    # check_point_mgmt:
+      # command: publish
+      # session-data: "{{ login_response }}"
+
+  - name: "Politica 1 de entrada"
+    check_point_mgmt:
+      command: add-access-rule
+      parameters:
+       layer: "vsx2 Network"
+       name: "Regla de Entrada a los servidores"
+       position:
+        top: "Reglas de entrada"
+       source:
+        - "any"
+       destination:
+        - "pc_172.45.67.20"
+       service:
+        - "any"
+       action: "accept"
+       track: "Network Log"
+      session-data: "{{ login_response }}"
+      
+  - name: "Seccion de salida"
+    check_point_mgmt:
+      command: add-access-section
+      parameters:
+       name: "Reglas de salida"
+       layer: "vsx2 Network"
+       position: "2"
+      session-data: "{{ login_response }}" 
+  
+  - name: "Politica 1 de Salida"
+    check_point_mgmt:
+      command: add-access-rule
+      parameters:
+       layer: "vsx2 Network"
+       name: "Regla de Entrada a los servidores"
+       position:
+        top: "Reglas de salida"
+       source:
+        - "vsx2_grp_intnet"
+       destination:
+        - "any"
+       service:
+        - "icmp-proto"
+       action: "accept"
+       track: "Network Log"
+      session-data: "{{ login_response }}"  
+      
+  # - name: "discard"
+    # check_point_mgmt:
+      # command: discard
+      # session-data: "{{ login_response }}"
+ 
+  - name: "publish"
+    check_point_mgmt:
+      command: publish
+      session-data: "{{ login_response }}"
+      
+  - name: "Install VSX2"
+    check_point_mgmt:
+      command: install-policy
+      parameters:
+       policy-package: "vsx2"
+       targets: "vsx2"
+      session-data: "{{ login_response }}"
+
