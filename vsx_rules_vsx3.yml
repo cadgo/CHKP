@@ -9,14 +9,14 @@
         username: "{{mgmt_user}}"           # Variables set in /etc/ansible/hosts, to avoid needing
         password: "{{mgmt_password}}"       # to type your login details in every playbook.
         management: "{{mgmt_server}}"
-      fingerprint: "70:42:E5:E7:89:1E:D9:8B:B2:EC:3F:9A:BB:EA:2D:7F:A3:D4:33:05"
+      fingerprint: "42:E4:FA:36:19:AE:6E:F8:2A:78:53:A4:ED:2B:27:16:1F:A9:92:37"
     register: login_response                # Register the output from the login
-  
+          
   - name: "create-new-policy-package"
     check_point_mgmt:
       command: add-package
       parameters:
-       name: "vsx3"
+       name: "vsx3Package"
        comments: "created"
        color: "red"
        threat-prevention: "false"
@@ -58,7 +58,7 @@
       command: add-access-section
       parameters:
        name: "Reglas de entrada"
-       layer: "vsx3 Network"
+       layer: "vsx3Package Network"
        position: "top"
       session-data: "{{ login_response }}"
       
@@ -71,7 +71,7 @@
     check_point_mgmt:
       command: add-access-rule
       parameters:
-       layer: "vsx3 Network"
+       layer: "vsx3Package Network"
        name: "Regla de Entrada a los servidores"
        position:
         top: "Reglas de entrada"
@@ -82,7 +82,7 @@
        service:
         - "any"
        action: "accept"
-       track: "Network Log"
+       track: "log"
       session-data: "{{ login_response }}"
       
   - name: "Seccion de salida"
@@ -90,7 +90,7 @@
       command: add-access-section
       parameters:
        name: "Reglas de salida"
-       layer: "vsx3 Network"
+       layer: "vsx3Package Network"
        position: "2"
       session-data: "{{ login_response }}" 
   
@@ -98,7 +98,7 @@
     check_point_mgmt:
       command: add-access-rule
       parameters:
-       layer: "vsx3 Network"
+       layer: "vsx3Package Network"
        name: "Regla de Entrada a los servidores"
        position:
         top: "Reglas de salida"
@@ -109,7 +109,7 @@
        service:
         - "icmp-proto"
        action: "drop"
-       track: "Network Log"
+       track: "log"
       session-data: "{{ login_response }}"  
       
   # - name: "discard"
@@ -126,7 +126,7 @@
     check_point_mgmt:
       command: install-policy
       parameters:
-       policy-package: "vsx3"
+       policy-package: "vsx3Package"
        targets: "vsx3"
       session-data: "{{ login_response }}"
 
