@@ -2,7 +2,6 @@
 - hosts: localhost                        # Note #2 in the Description section
   tasks:
   - name: login                           # You have to login to the management
-                                            # server before running any commands
     check_point_mgmt:
       command: login
       parameters:
