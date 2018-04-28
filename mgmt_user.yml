@@ -8,7 +8,7 @@
    hostname: SMS1
   tasks:
   - name: "Configuramos API para escuchar"
-    raw:  export LD_LIBRARY_PATH={{ LD }}; mgmt_cli -r true set api-settings accepted-api-calls-from \"All IP addresses\" --domain \'System Data\'
+    raw:  export LD_LIBRARY_PATH={{ LD }}; /opt/CPshrd-R80/bin/mgmt_cli -r true set api-settings accepted-api-calls-from "All IP addresses" --domain 'System Data'
     register: api_out
 
   - debug: msg="{{ api_out.stdout }}"
