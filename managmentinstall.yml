@@ -1,0 +1,61 @@
+---
+- hosts: '{{ host }}'
+  gather_facts: False
+  vars:
+   ftwfile: /home/admin/ftwstart
+   ftwlog: ftw.log
+   hostname: SMS1
+  tasks:
+  
+  - name: Removere cualquier lock  
+    raw: clish -c "lock database override"
+    register: out
+    
+  - name: show configuration  
+    raw: clish -c "save config"
+
+  - name: Install Mgmt {{ host }}
+    raw: echo "config_system -s \"install_security_managment=true&install_mgmt_primary=true&mgmt_admin_radio=gaia_admin&mgmt_gui_clients_radio=any&hostname={{ hostname }}\" >> ftw.log"  > {{ ftwfile }} 
+    register: out
+  
+  - name: "Change permissions"
+    raw: chmod 755 {{ftwfile}}
+
+  - name: "Run the FTW Setup"
+    shell: "/bin/bash {{ftwfile}}"
+    async: 10
+    poll: 0
+
+  - name: Wait until the FTW completes
+    wait_for: 
+      path: /var/log/ftw_install.log
+      search_regex: Complete
+      delay: 15
+      timeout: 2400
+      state: present
+
+  - name: Waiting for 10 seconds before reboot
+    pause:
+      seconds: 10
+      
+  - name: "Reboot"
+    shell: "reboot"
+    async: 10
+    poll: 0
+
+  - name: "Esperamos que reinicie la consola"
+    wait_for_connection:
+      delay: 30
+      timeout: 300
+
+  - name: "Esperamos por el demonio"
+    wait_for:
+      port: 18190
+      sleep: 5
+      delay: 30
+      timeout: 600
+
+  - name: "Esperamos un poco mas por la gui"
+    pause:
+      seconds: 500
+

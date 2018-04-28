@@ -1,0 +1,32 @@
+---
+- hosts: '{{ host }}'
+  gather_facts: False
+  vars:
+   LD: /opt/CPsuite-R80/fw1/oracle_oi/sdk:/opt/uf/SecureComputing/lib:/opt/KAV/ppl:/opt/KAV/lib:/opt/CPshrd-R80/lib:/opt/CPshrd-R80/web/Apache/2.2.0/lib:/opt/CPshrd-R80/database/postgresql/lib:/opt/CPshrd-R80/lib64:/opt/CPsuite-R80/fw1/lib:/opt/CPsuite-R80/fg1/lib:/opt/CPportal-R80/lib:/opt/CPrt-R80/lib:/opt/CPrt-R80/log_indexer/lib:/opt/CPuepm-R80/lib:/opt/CPuepm-R80/apache22/lib:/opt/CPdiag-R80/lib
+   ftwfile: /home/admin/ftwstart
+   ftwlog: ftw.log
+   hostname: SMS1
+  tasks:
+  - name: "Configuramos API para escuchar"
+    raw:  export LD_LIBRARY_PATH={{ LD }}; mgmt_cli -r true set api-settings accepted-api-calls-from \"All IP addresses\" --domain \'System Data\'
+    register: api_out
+
+  - debug: msg="{{ api_out.stdout }}"
+
+  - name: "Agregando Usuarios API"
+    raw:  export LD_LIBRARY_PATH={{ LD }}; /opt/CPshrd-R80/bin/mgmt_cli -r true add administrator name \"api_user\" password \"vpn123\" must-change-password false authentication-method \"INTERNAL_PASSWORD\" permissions-profile \"Super User\" --domain \'System Data\'
+    register: user_out
+
+  - debug: msg="{{ user_out.stdout }}"
+
+  - name: "Api Restart"
+    raw: api restart
+    register: out
+
+  - debug: msg={{ out.stdout }}
+
+  - name: "Estado de la API"
+    raw: api status
+    register: out
+  
+  - debug: msg={{ out.stdout }}
