@@ -1,0 +1,52 @@
+---
+- hosts: fws
+  gather_facts: False
+  vars:
+   ftwfile: /home/admin/ftwstart
+   ftwlog: ftw.log
+  tasks:
+  
+  - name: Removere cualquier lock  
+    raw: clish -c "unlock database"
+    register: out
+    
+  - name: show configuration  
+    raw: clish -c "show configuration"
+    register: out
+
+  - name: Configure eth1 
+    raw: clish -c "set interface eth1 ipv4-address 10.1.1.254 mask-length 24"
+    
+  - name: Install Firewall
+    raw: echo "config_system -s \"install_security_gw=true&install_ppak=true&gateway_cluster_member=false&install_security_managment=true&install_mgmt_primary=true&mgmt_admin_radio=gaia_admin&mgmt_gui_clients_radio=any\" >> ftw.log"  > {{ ftwfile }} 
+    register: out
+    
+  - debug: msg= "{{ out.stdout }}"
+    verbosity: 2
+  
+  - name: "Change permissions"
+    raw: chmod 755 {{ftwfile}}
+
+  - name: "Run the FTW Setup"
+    shell: "/bin/bash {{ftwfile}}"
+    async: 10
+    poll: 0
+
+  - name: Wait until the FTW completes
+    wait_for: 
+      path: /var/log/ftw_install.log
+      search_regex: Complete
+      delay: 15
+      timeout: 2400
+      state: present
+
+
+  - name: Waiting for 10 seconds before reboot
+    pause:
+      seconds: 10
+      
+  - name: "Reboot"
+    shell: "reboot"
+    async: 10
+    poll: 0
+

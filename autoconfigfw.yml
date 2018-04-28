@@ -1,0 +1,31 @@
+---
+- hosts: fws
+  gather_facts: False
+  tasks:
+  - name: show configuration  
+    raw: clish -c "show configuration"
+    register: out
+
+  - name: Configure eth1 
+    raw: clish -c "set interface eth1 ipv4-address 10.1.1.254 mask-length 24"
+    
+  - name: Install Firewall
+    raw: config_system -s "install_security_gw=true&install_ppak=true&gateway_cluster_member=false&install_security_managment=true&install_mgmt_primary=true&mgmt_admin_radio=gaia_admin&mgmt_gui_clients_radio=any&timezone=\'Etc/GMT-5\'&primary=8.8.8.8"
+    register: out
+    
+  - debug: msg= "{{ out.stdout }}"
+    verbosity: 2
+    
+  - name: Check Installation success
+    wait_for: 
+      delay: 10
+      timeout: 1800
+      path: /var/log/ftw_install.log
+      search_regex: Complete
+      
+  - name: restart Device
+    command: /sbin/shutdown -r +5
+    async: 0
+    poll: 0
+    ignore_errors: true
+      

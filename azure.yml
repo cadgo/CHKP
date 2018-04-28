@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Create virtual net
+    azure_rm_virtualnetwork:
+      resource_group: Testing
+      name: testvn001
+      address_prefixes: "10.10.0.0/16"
