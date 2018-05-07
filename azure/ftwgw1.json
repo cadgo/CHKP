@@ -7,7 +7,7 @@
             "metadata": {
                 "description": "Deployment location"
             }
-            "Value": "West US 2"
+            "Value": "West US 2",
         },
         "vsecVersion": {
             "type": "string",
