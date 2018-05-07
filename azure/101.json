@@ -7,14 +7,14 @@
       "metadata": {
         "description": "User name for the Virtual Machine."
       }
-      "defaultValue": "admin"
+      "defaultValue": "admin",
     },
     "adminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine."
       }
-      "defaultValue": "Password123!"
+      "defaultValue": "Password123!",
     },
     "dnsLabelPrefix": {
       "type": "string",
