@@ -27,7 +27,7 @@
             "metadata": {
                 "description": "Administrator password"
             },
-            "defaultValue": ""
+            "defaultValue": "Password123!"
         },
         "authenticationType": {
             "type": "string",
@@ -51,7 +51,8 @@
             "type": "string",
             "metadata": {
                 "description": "Name of the Check Point Security Gateway"
-            }
+            },
+            "defaultValue": "FtwGw1",
         },
         "vmSize": {
             "type": "string",
@@ -64,7 +65,8 @@
             "type": "securestring",
             "metadata": {
                 "description": "One time key for Secure Internal Communication"
-            }
+            },
+            "defaultValue": "password123"
         },
         "virtualNetworkName": {
             "type": "string",
