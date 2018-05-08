@@ -152,7 +152,7 @@
             "metadata": {
                 "description": "Installation Type"
             },
-            "defaultValue": "standalone",
+            "defaultValue": "gateway",
             "allowedValues": [
                 "standalone",
                 "gateway",
