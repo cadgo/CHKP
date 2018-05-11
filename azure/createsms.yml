@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+   - name: Create Azure Deploy
+     azure_rm_deployment:
+       state: present
+       resource_group_name: "{{ CheckPointSMS | default('CheckPointGw', true) }}"
+       template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/SMS.json'
+       parameters:
+         location:
+           value: East US
+         vmName:
+           value: "{{ GwName | default('SMSAzure', true) }}"
+         adminPassword:
+           value: Password123!
+         Subnet1StartAddress:
+           value: 10.0.1.11
+         vnetNewOrExisting:
+           value: existing
+         virtualNetworkExistingRGName:
+           value: CheckPointGw
