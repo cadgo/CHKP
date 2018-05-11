@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+   - name: Create Azure Deploy
+     azure_rm_deployment:
+       state: present
+       resource_group_name: "{{ CheckPointGw | default('CheckPointGw', true) }}"
+       template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/CheckPointFirewall.json'
+       parameters:
+         location:
+           value: East US
+         vmName:
+           value: "{{ GwName | default('FwAzure', true) }}"
+         adminPassword:
+           value: Password123!
+         sicKey:
+           value: "{{ password123 | default('password123', true) }}"
