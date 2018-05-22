@@ -1,6 +1,8 @@
 ---
 - hosts: localhost
   gather_facts: False
+  vars_files:
+    - azure_vars.yml
   tasks:
    - name: Create Azure Deploy
      azure_rm_deployment:
@@ -11,12 +13,13 @@
          location:
            value: East US
          vmName:
-           value: "{{ GwName | default('SMSAzure', true) }}"
+           value: "{{ SMSName }}"
          adminPassword:
-           value: Password123!
+           value: "{{ Password }}"
          Subnet1StartAddress:
            value: 10.0.1.11
          vnetNewOrExisting:
            value: existing
          virtualNetworkExistingRGName:
            value: CheckPointGw
+         

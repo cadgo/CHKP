@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+   - name: Create Azure Deploy
+     azure_rm_deployment:
+       state: present
+       resource_group_name: ftwgw1
+       template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/gw1.json'
+       parameters:
+         location:
+           value: East US
+         vmName:
+           value: FwTest123
+         adminPassword:
+           value: Password123!
+         sicKey:
+           value: password123
+         

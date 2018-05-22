@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files:
+    - azure_vars.yml
+  tasks:
+   # - name: GetResources
+     # azure_rm_networkinterface_facts:
+       # resource_group: CheckPointGw
+       # name: FwAzure-eth0
+     # register: out 
+
+   # - name: Resources
+     # azure_rm_resourcegroup_facts:
+       # name: CheckPointGw
+
+   # - name: Get facts for one virtual network
+     # azure_rm_virtualnetwork_facts:
+       # resource_group: CheckPointGw
+       # name: vnet
+    
+   # - name: Get all record sets in one zone
+     # azure_rm_dnsrecordset_facts:
+       # resource_group: CheckPointGw
+       
+   - name: Gather facts for a public ip
+     azure_rm_publicipaddress_facts:
+       resource_group: CheckPointGw
+       name: FwAzure
+     register: salida
+
+   - debug: var={{ salida.objects[0].properties['ipAddress'] }}
+
+   - name: Guardado de IP publica
+     copy:
+       content: |
+        [azurevm]
+        {{ salida.objects[0].properties['ipAddress'] }}
+
+       dest: /home/carlos/ansible_env/azure/IPAzure.txt
+     
+   

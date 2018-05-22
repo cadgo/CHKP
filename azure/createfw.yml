@@ -1,6 +1,8 @@
 ---
 - hosts: localhost
   gather_facts: False
+  vars_files:
+    - azure_vars.yml
   tasks:
    - name: Create Azure Deploy
      azure_rm_deployment:
@@ -11,8 +13,9 @@
          location:
            value: East US
          vmName:
-           value: "{{ GwName | default('FwAzure', true) }}"
+           value: "{{ GwName }}"
          adminPassword:
-           value: Password123!
+           value: "{{ Password }}"
          sicKey:
-           value: "{{ password123 | default('password123', true) }}"
+           value: "{{ sickey }}"
+         

@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files:
+    - azure_vars.yml
+  tasks:
+   - name: Gather facts for a public ip
+     azure_rm_publicipaddress_facts:
+       resource_group: CheckPointGw
+       name: "{{ item }}"
+     loop:
+       - "{{ SMSName }}"
+       - "{{ GwName }}"
+     register: salida
+
+   - debug: msg="{{ item.value }}"
+     loop: "{{ lookup('dict', salida) }}"
+
+   - name: Guardado 1er elemento en nuevo inventory
+     copy:
+       content: |
+        [{{ item['results'][0]['objects'][0]['name'] }}]
+        {{ item['results'][0]['objects'][0]['properties']['ipAddress'] }}
+
+        [{{ item['results'][1]['objects'][0]['name'] }}]
+        {{ item['results'][1]['objects'][0]['properties']['ipAddress'] }}
+
+       dest: /home/carlos/ansible_env/azure/IPAzure.txt
+     with_items:
+       - "{{ salida }}"
+     
