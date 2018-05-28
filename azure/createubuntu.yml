@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: ubuntu Deployment
+      azure_rm_deployment:
+        state: present
+        resource_group_name: tpot
+        template_link: 'https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/ubuntu-netdisk-setup/azuredeploy.json'
+        parameters:
+          location:
+            value: East US
+          vmName:
+            value: tpot
+          adminUsername:
+            value: carlos
+          adminPassword:
+            value: Password123!
+          Subnet1StartAddress:
+            value: 10.0.2.12
+          vnetNewOrExisting:
+            value: existing
+          virtualNetworkExistingRGName:
+            value: RedChkp
+          vmSize:
+            value: Standard_B4ms
+
+
+    # - name: Create VM Ubuntu
+  #   azure_rm_virtualmachine:
+  #     resource_group: tpot1
+  #     name: tpot
+  #     profile: default
+  #     vm_size: Standard_B4ms
+  #     admin_username: carlos
+  #     admin_password: Password123!
+  #     storage_account: testaccount001
+  #     ssh_password_enabled: true
+  #     image:
+  #       offer: UbuntuServer
+  #       publisher: Canonical
+  #       sku: 16.04-LTS
+  #       version: latest
+

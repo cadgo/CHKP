@@ -1,0 +1,2 @@
+[tpot]
+23.101.135.20 ansible_user=carlos ansible_ssh_pass=Password123!

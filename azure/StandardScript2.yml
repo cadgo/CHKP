@@ -4,24 +4,24 @@
   vars_files:
     - azure_vars.yml
   tasks:
-   # - name: GetResources
-     # azure_rm_networkinterface_facts:
-       # resource_group: CheckPointGw
-       # name: FwAzure-eth0
-     # register: out 
+   - name: GetResources
+     azure_rm_networkinterface_facts:
+       resource_group: CheckPointGw
+       name: FwAzure-eth0
+     register: out 
 
-   # - name: Resources
-     # azure_rm_resourcegroup_facts:
-       # name: CheckPointGw
+   - name: Resources
+     azure_rm_resourcegroup_facts:
+       name: CheckPointGw
 
-   # - name: Get facts for one virtual network
-     # azure_rm_virtualnetwork_facts:
-       # resource_group: CheckPointGw
-       # name: vnet
+   - name: Get facts for one virtual network
+     azure_rm_virtualnetwork_facts:
+       resource_group: CheckPointGw
+       name: vnet
     
-   # - name: Get all record sets in one zone
-     # azure_rm_dnsrecordset_facts:
-       # resource_group: CheckPointGw
+   - name: Get all record sets in one zone
+     azure_rm_dnsrecordset_facts:
+       resource_group: CheckPointGw
        
    - name: Gather facts for a public ip
      azure_rm_publicipaddress_facts:

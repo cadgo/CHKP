@@ -1,0 +1,89 @@
+---
+- name: Create Azure Ubuntu
+  hosts: tpot
+  vars:
+    localUser: carlos
+    tpotLog: install.log
+    WebPass: vpn123
+  tasks:
+  - block:
+      - name: Validate environment
+        debug:
+          msg: "Nothing to run we need an Ubuntu 16.04.x"
+
+      - meta: end_play
+    when: ansible_distribution != "Ubuntu" or ansible_distribution_version != "16.04"
+    #when: ansible_distribution != "Ubuntu"
+
+  - name: Upgrade platform
+    become: true
+    apt:
+      upgrade: yes
+      update_cache: yes
+
+  # - name: Instalando PIP
+  #   become: true
+  #   apt:
+  #     name: python-pip
+  #     state: latest
+
+  # - name: updating pip to 10
+  #   shell: pip install --upgrade pip
+
+  # - name: Linking Pip
+  #   become_user: root
+  #   become_method: sudo
+  #   shell: ln -s /usr/bin/pip /usr/local/bin/pip
+
+
+  - name: Generar LLave de SSH local
+    authorized_key:
+      user: "{{ localUser }}"
+      state: present
+      key: "{{ lookup('file', '/home/'+localUser+'/.ssh/id_rsa.pub') }}"
+
+  - name: Downloading Tpot from Git
+    shell: git clone https://github.com/dtag-dev-sec/t-pot-autoinstall.git
+    args:
+      chdir: "{{ '/home/' + localUser + '/' }}"
+
+  # - name: Linking Pip
+  #   become_user: root
+  #   become_method: sudo
+  #   shell: ln -s /usr/bin/pip /usr/local/bin/pip
+
+  - name: Install Tpot 1st try
+    become: yes
+    become_user: root
+    become_method: sudo
+    ignore_errors: yes
+    shell: "{{ 'bash ./install.sh ' + localUser +  ' 1 ' + WebPass }}"
+    # async: 10
+    # poll: 0
+    args:
+      chdir: "{{ '/home/' + localUser + '/t-pot-autoinstall' }}"
+
+  - name: touch ngnix
+    become: yes
+    become_user: root
+    become_method: sudo
+    shell: touch /etc/nginx/sites-enabled/default
+
+  - name: erasing logs
+    become: yes
+    become_user: root
+    become_method: sudo
+    shell: rm "{{ tpotLog }}"
+    args:
+      chdir: "{{ '/home/' + localUser + '/t-pot-autoinstall' }}"
+
+  - name: Install Tpot 2nd try
+    become: yes
+    become_user: root
+    become_method: sudo
+    shell: "{{ 'bash ./install.sh ' + localUser +  ' 1 ' + WebPass }}"
+    args:
+      chdir: "{{ '/home/' + localUser + '/t-pot-autoinstall' }}"
+
+
+

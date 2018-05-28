@@ -4,18 +4,34 @@
   vars_files:
     - azure_vars.yml
   tasks:
-   - name: Create Azure Deploy
-     azure_rm_deployment:
-       state: present
-       resource_group_name: "{{ CheckPointGw | default('CheckPointGw', true) }}"
-       template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/CheckPointFirewall.json'
-       parameters:
-         location:
-           value: East US
-         vmName:
-           value: "{{ GwName }}"
-         adminPassword:
-           value: "{{ Password }}"
-         sicKey:
-           value: "{{ sickey }}"
+   # - name: Create Azure Deploy
+   #   azure_rm_deployment:
+   #     state: present
+   #     resource_group_name: "{{ CheckPointGw | default('CheckPointGw', true) }}"
+   #     template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/CheckPointFirewall.json'
+   #     parameters:
+   #       location:
+   #         value: East US
+   #       vmName:
+   #         value: "{{ GwName }}"
+   #       adminPassword:
+   #         value: "{{ Password }}"
+   #       sicKey:
+   #         value: "{{ sickey }}"
+
+    - name: Create Azure Deploy
+      azure_rm_deployment:
+        resource_group: "grp1"
+        state: present
+        location: "eastus"
+        template_link: 'https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vm-simple-linux/azuredeploy.json'
+        deployment_name: "hola"
+        parameters:
+          adminUsername:
+            value: chouseknecht
+          adminPassword:
+            value: password123!
+          ubuntuOSVersion:
+            value: "16.04.0-LTS"
+      register: output
          
