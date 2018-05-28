@@ -8,6 +8,11 @@
         "description": "User name for the Virtual Machine."
       }
     },
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "VMName."
+      }
     "sshKeyData": {
       "type": "string",
       "metadata": {
