@@ -1,44 +1,100 @@
 ---
 - hosts: localhost
   gather_facts: False
+  roles:
+    - { role: Azure.azure_modules }
+  vars_files:
+    - azure_vars.yml
   tasks:
-    - name: ubuntu Deployment
-      azure_rm_deployment:
-        state: present
-        resource_group_name: tpot
-        template_link: 'https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/ubuntu-netdisk-setup/azuredeploy.json'
-        parameters:
-          location:
-            value: East US
-          vmName:
-            value: tpot
-          adminUsername:
-            value: carlos
-          adminPassword:
-            value: Password123!
-          Subnet1StartAddress:
-            value: 10.0.2.12
-          vnetNewOrExisting:
-            value: existing
-          virtualNetworkExistingRGName:
-            value: RedChkp
-          vmSize:
-            value: Standard_B4ms
+    - name: Create storage account name
+      set_fact:
+          storage_account: "{{ UbuntuName | hash('md5') | truncate(24, True, '') }}"
+
+    - name: Create storage account
+      azure_rm_storageaccount:
+          location: "{{ TmLocation }}"
+          resource_group: "{{ ResourceGroup }}"
+          name: "{{ UbuntuName + 'storage' }}"
+          account_type: Standard_LRS
+
+    - name: Add subnet
+      azure_rm_subnet:
+          resource_group: "{{ ResourceGroup }}"
+          name: "{{ UbuntuName + 'network'}}"
+          address_prefix: "10.0.3.0/24"
+          virtual_network: vnet
+
+    - name: Create public ip
+      azure_rm_publicipaddress:
+          location: "{{ TmLocation }}"
+          resource_group: "{{ ResourceGroup }}"
+          allocation_method: Static
+          name: "{{ UbuntuName + 'publicIP'}}"
+
+    - name: Create security group
+      azure_rm_securitygroup:
+          location: "{{ TmLocation }}"
+          resource_group: "{{ ResourceGroup }}"
+          name: "{{ UbuntuName + 'secGroup' }}"
+          purge_rules: yes
+          rules:
+            - name: ALLOW_ALL_TCP
+              protocol: Tcp
+              destination_port_range: 1-65000
+              access: Allow
+              priority: 100
+              direction: Inbound
+            - name: ALLOW_ALL_UDP
+              protocol: Udp
+              destination_port_range: 1-65000
+              access: Allow
+              priority: 110
+              direction: Inbound
+
+    - name: Create NIC for single nic VM
+      azure_rm_networkinterface:
+          location: "{{ TmLocation }}"
+          resource_group: "{{ ResourceGroup }}"
+          name: "{{ UbuntuName + '001' }}"
+          virtual_network: "vnet"
+          subnet: "{{ UbuntuName + 'network'}}"
+          public_ip_name: "{{ UbuntuName + 'publicIP'}}"
+          security_group: "{{ UbuntuName + 'secGroup' }}"
+
+    - name: Create virtual machine with a single NIC
+      register: output
+      azure_rm_virtualmachine:
+          location: "{{ ubuntuLocation }}"
+          resource_group: "{{ ResourceGroup }}"
+          name: "{{ UbuntuName }}"
+          vm_size: Standard_B2ms
+          #storage_account: "{{ storage_account }}"
+          storage_account: tpothoneypodstorage
+          storage_container: testvm001
+          storage_blob: testvm001.vhd
+          admin_username: "{{ ubuntuUser }}"
+          admin_password: "{{ Password }}"
+          short_hostname: testvm
+          os_type: Linux
+          network_interfaces: "{{ UbuntuName + '001' }}"
+          #availability_set: "avbs{{ resource_group | hash('md5') | truncate(7, True, '') }}"
+          image:
+            offer: UbuntuServer
+            publisher: Canonical
+            sku: 16.04-LTS
+            version: latest
+          custom_data: |
+            #!/bin/sh
+            echo "custom_data was executed" > /tmp/custom_data.txt
 
 
-    # - name: Create VM Ubuntu
-  #   azure_rm_virtualmachine:
-  #     resource_group: tpot1
-  #     name: tpot
-  #     profile: default
-  #     vm_size: Standard_B4ms
-  #     admin_username: carlos
-  #     admin_password: Password123!
-  #     storage_account: testaccount001
-  #     ssh_password_enabled: true
-  #     image:
-  #       offer: UbuntuServer
-  #       publisher: Canonical
-  #       sku: 16.04-LTS
-  #       version: latest
+    # - name: Create an availability set
+    #   azure_rm_availabilityset:
+    #     name: "avbs{{ resource_group | hash('md5') | truncate(7, True, '') }}"
+    #     resource_group: "{{ resource_group }}"
 
+    # - name: Create virtual network
+    #   azure_rm_virtualnetwork:
+    #       resource_group: "{{ resource_group }}"
+    #       name: testvm001
+    #       address_prefixes: "10.10.0.0/16"
