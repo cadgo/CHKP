@@ -1,17 +1,19 @@
 ---
 - hosts: localhost
   gather_facts: False
+  roles:
+    - { role: Azure.azure_modules }
   vars_files:
     - azure_vars.yml
   tasks:
-   - name: Create Azure Deploy
+   - name: Create SMS
      azure_rm_deployment:
        state: present
-       resource_group_name: "{{ CheckPointSMS | default('CheckPointGw', true) }}"
+       resource_group_name: "{{ ResourceGroup }}"
        template_link: 'https://raw.githubusercontent.com/cadgo/CHKP/master/azure/SMS.json'
        parameters:
          location:
-           value: East US
+           value: "{{ TmLocation }}"
          vmName:
            value: "{{ SMSName }}"
          adminPassword:
@@ -21,5 +23,5 @@
          vnetNewOrExisting:
            value: existing
          virtualNetworkExistingRGName:
-           value: CheckPointGw
+           value: "{{ ResourceGroup }}"
          
