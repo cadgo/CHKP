@@ -1,0 +1,4 @@
+---
+- import_playbook: createfw.yml
+- import_playbook: createsms.yml
+- import_playbook: createubuntu.yml

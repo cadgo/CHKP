@@ -6,7 +6,7 @@
   vars_files:
     - azure_vars.yml
   tasks:
-   - name: Create Azure Deploy
+   - name: Create FW Azure Deploy
      azure_rm_deployment:
        state: present
        resource_group_name: "{{ ResourceGroup }}"

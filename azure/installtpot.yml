@@ -42,6 +42,7 @@
       state: present
       key: "{{ lookup('file', '/home/'+localUser+'/.ssh/id_rsa.pub') }}"
 
+
   - name: Downloading Tpot from Git
     shell: git clone https://github.com/dtag-dev-sec/t-pot-autoinstall.git
     args:
@@ -81,9 +82,15 @@
     become: yes
     become_user: root
     become_method: sudo
+    ignore_errors: yes
     shell: "{{ 'bash ./install.sh ' + localUser +  ' 1 ' + WebPass }}"
     args:
       chdir: "{{ '/home/' + localUser + '/t-pot-autoinstall' }}"
+    register: installation
+
+    - name: Print Install Status
+      debug:
+        msg: "Installation status {{ installation }}"
 
 
 
