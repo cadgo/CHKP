@@ -1,0 +1,590 @@
+heat_template_version: 2014-10-16
+
+
+parameters:
+
+ cp_gateway_name:
+  type: string
+  description: Gateway Image Name as it will be created in Openstack
+  default: CP_vSEC
+  
+ cp_sic_otp:
+  type: string
+  hidden: true
+  description: SIC one time password
+  
+ cp_os_admin_hash:
+  type: string
+  description: admin password hash - to generate - openssl passwd -1 (-one not l)
+  default: $1$0JcTFZjf$zd67.5HSIKz8.7K4bvmv31
+  
+ cp_glance_image: 
+  type: string
+  description: CP Gateway image name in Glance
+  constraints:
+    - custom_constraint: glance.image
+ 
+ cp_gw_flavor:
+  type: string
+  description: CP Gateway CPU/Mem/Disk Flavor Name - min 50gb disk - recommended 2vCPU , 2gb RAM
+  constraints:
+    - custom_constraint: nova.flavor
+
+ nova_affinity:
+  type: string
+  description: nova affinity - affinity - deploy cluster in one hypervisor - anti-affinity - deploy cluster on different hypervisors
+  constraints:
+    - allowed_values: [anti-affinity,affinity]
+  default: affinity
+  
+ external_net:
+  type: string
+  description: name of the network considered external in openstack
+  constraints:
+    - custom_constraint: neutron.network
+
+ internal_net:
+  type: string
+  description: name of the network considered external in openstack
+  constraints:
+    - custom_constraint: neutron.network
+    
+
+ cp_external_ip:
+  type: string
+  description: member 1 internal IP in openstack
+  
+ cp_internal_ip:
+  type: string
+  description: member 1 internal IP in openstack
+
+ register_w_mgmt:
+  type: boolean
+  description: register_to_management_station
+
+ smartcenter_ip:
+  type: string
+  description: ip address of management IP
+
+ smartcenter_port:
+  type: string
+  description: smartcenter API port
+  default: 443
+  
+ smartcenter_user:
+  type: string
+  description: username with access to the CP manager
+  default: admin
+
+ smartcenter_pw:
+  type: string
+  description: username with access to the CP manager
+  default: zubur123
+  hidden: true
+
+ antispoofing:
+  type: boolean
+  description: spoofing settings
+  default: false
+
+ antispoofing_action:
+   type: string
+   description: spoofing action - detect or prevent
+   constraints: 
+   default: detect
+   
+ install_policy:
+  type: boolean
+  description: install policy after registration (true/false)
+  default: false
+  
+ access_policy_name:
+  type: string
+  description: access policy name (layer name)
+  default: Standard
+  
+ vsec_hotfix:
+  type: boolean
+  description: install_vsec_hotfix
+  default: false
+
+ jumbo_159:
+  type: boolean
+  description: install hotfix 159
+  default: false
+  
+
+parameter_groups:  
+- label: OpenStack Image Details
+  parameters: 
+  - cp_gateway_name
+  - cp_glance_image
+  - cp_gw_flavor
+  - nova_affinity
+- label: GAIA OS Details
+  parameters:
+  - cp_os_admin_hash
+  - cp_sic_otp
+- label: Register with Management
+  parameters:
+  - register_w_mgmt
+  - smartcenter_ip
+  - smartcenter_port
+  - smartcenter_user
+  - smartcenter_pw
+  - antispoofing
+  - antispoofing_action
+  - install_policy
+  - access_policy_name
+  - vsec_hotfix
+  - jumbo_159
+- label: Network Interfaces
+  parameters:
+  - external_net
+  - cp_external_ip
+  - internal_net
+  - cp_internal_ip
+
+
+  
+  
+ 
+resources:
+
+#security group creation
+ vsec_sg:
+  type: OS::Neutron::SecurityGroup
+  properties:
+   description: openstack_security_group for to allow traffic thru the vSEC gateway
+   name: 
+       list_join: ['-',[ {get_param: cp_gateway_name },'vsec_sg']]
+   rules: [{"ethertype": IPv4, "direction": egress, "remote_ip_prefix": 0.0.0.0/0,  "remote_mode": remote_ip_prefix}, {"ethertype": IPv4, "direction": ingress, "remote_ip_prefix": 0.0.0.0/0, "remote_mode": remote_ip_prefix}]
+
+    
+## External Ports 
+## 
+ cp_external_port:
+  type: OS::Neutron::Port
+  depends_on: vsec_sg
+  properties:
+   network: {get_param: external_net }
+   fixed_ips: [{ip_address: {get_param: cp_external_ip}}]
+   security_groups: [{get_resource: vsec_sg}]
+   allowed_address_pairs: [{ip_address: "0.0.0.0/1"},{ip_address: "128.0.0.1/1"}]
+
+ cp_internal_port:
+  type: OS::Neutron::Port
+  depends_on: vsec_sg
+  properties:
+   network: {get_param: internal_net }
+   fixed_ips: [{ip_address: {get_param: cp_internal_ip}}]
+   security_groups: [{get_resource: vsec_sg}]
+   allowed_address_pairs: [{ip_address: "0.0.0.0/1"},{ip_address: "128.0.0.1/1"}]
+   
+   
+ cp_config_script:
+  type: OS::Heat::SoftwareConfig
+  properties:
+   group: ungrouped
+   config: 
+    str_replace:
+        params:
+            #installation type
+            __installfw__: "true"
+            __installmgmt__: "false"
+            #one time password
+            __sicpw__: {get_param: cp_sic_otp}
+            # this parameter will setup the admin and expert password hash
+            __osadminhash__: {get_param: cp_os_admin_hash}
+            __default_gw_network__: "eth0"
+            # this section takes care of the auto-registration parameters
+            __register__: {get_param: register_w_mgmt}
+            __smartcenterip__: {get_param: smartcenter_ip}
+            __smartcenterport__: {get_param: smartcenter_port}
+            __smartcenteruser__: {get_param: smartcenter_user}
+            __smartcenterpw__: {get_param: smartcenter_pw}
+            __antispoofing__: {get_param: antispoofing}
+            __antispoofingaction__: {get_param: antispoofing_action}
+            __installpolicy__: {get_param: install_policy}
+            __accesspolicyname__: {get_param: access_policy_name}
+            __vsec_hotfix__: {get_param: vsec_hotfix}
+            __jumbo_159__: {get_param: jumbo_159}
+            ############################################              
+            # Only applicable if __installmgmt__ = true
+            ############################################
+            __mgmtuser__: "xxxxxx"
+            __mgmtpw__: "xxxxxx"
+            __adminshell__: "/bin/bash"
+            __guiclients__: "any"
+        template: |
+            #!/bin/bash
+            ########################################
+            # OpenStack config script
+            # Check Point Software Technologies
+            ###########################
+            # global variables
+            ###########################
+            # set to support multiple interfaces which receive different default GWs over DHCP
+            # the interface here will be used as a default GW
+            DEFAULT_GW_INTERFACE="__default_gw_network__"
+        
+            #########################
+            # setting both variables to false will skip the first time wizard
+            # setting both variables to true will install a standalone GW
+            # setting INSTALL_GW to true and INSTALL_MGMT to false will install a GW only instance.
+            # setting INSTALL_MGMT to true and INSTALL_GW to false will install a MGMT only instance.
+            ########################
+            
+            INSTALL_GW="__installfw__"
+            INSTALL_MGMT="__installmgmt__"
+            
+            #####################################
+            # configure here admin and expert hash credentials
+            # hash can be obtained from a linux system by looking at /etc/shadow
+            # default hash = vpn123
+            ####################################
+            ADMIN_PW_HASH='__osadminhash__'
+            EXPERT_PW_HASH='__osadminhash__'
+            
+            ###############################
+            #DEFAULT SHELL = /bin/clish
+            # configure here if you would like to change it.
+            ###############################
+            
+            ADMIN_SHELL='__adminshell__'
+            
+            
+            #########################
+            #if INSTALL_GW = true and INSTALL_MGMT = false
+            # SIC_KEY must be configured
+            #########################
+            
+            SIC_KEY="__sicpw__"
+            
+            #############################
+            #if INSTALL_MGMT = true and INSTALL_GW is either true or false
+            # the following must be configured
+            ##############################
+            
+            MGMT_ADMIN_NAME="__mgmtuser__"
+            MGMT_ADMIN_PW="__mgmtpw__"
+            MGMT_GUI_RADIO="__guiclients__"
+            
+            #############################
+            # REGISTER WITH MANAGEMENT
+            #############################
+            
+            REGISTER="__register__"
+            REGISTER=$(echo $REGISTER | tr '[:upper:]' '[:lower:]')
+
+            if [ "$REGISTER" == "true" ]
+            then
+                POST_FIRST_TIME_WIZARD="REGISTER"
+                #connectivity details for the API Server - SmartCenter/CMA
+                SMARTCENTER_IP="__smartcenterip__"
+                SMARTCENTER_PORT="__smartcenterport__"
+                SMARTCENTER_USER="__smartcenteruser__"
+                SMARTCENTER_PW="__smartcenterpw__"
+                ANTISPOOFING="__antispoofing__"
+                ANTISPOOFING_ACTION="__antispoofingaction__"
+    
+                if [ ! -z $ANTISPOOFING ]
+                then
+                    ANTISPOOFING="false"
+                fi
+                if [ ! -z $ANTISPOOFING_ACTION ]
+                then
+                    ANTISPOOFING_ACTION="detect"
+                fi
+ 
+                INSTALL_POLICY="__installpolicy__"
+                INSTALL_POLICY=$(echo $INSTALL_POLICY | tr '[:upper:]' '[:lower:]')
+                if [ "$INSTALL_POLICY" == "true" ]
+                then	
+                    ACCESS_POLICY="__accesspolicyname__"
+                fi
+            fi            
+            
+            ############################
+            # INSTALL HOTFIXES
+            #############################
+            VSEC_HOTFIX="__vsec_hotfix__"
+            JUMBO_159="__jumbo_159__"
+            VSEC_HOTFIX=$(echo $VSEC_HOTFIX | tr '[:upper:]' '[:lower:]')
+            JUMBO_159=$(echo $JUMBO_159 | tr '[:upper:]' '[:lower:]')
+            
+            
+            ############################
+            # MAIN PROGRAM
+            ###########################
+            #get version
+            VERSION=`clish -c 'show version product' | awk '{print $6}'`
+            #Make all the strings lowercase
+            
+            DEFAULT_GW_INTERFACE=`echo $DEFAULT_GW_INTERFACE | tr '[A-Z]' '[a-z]'`
+            INSTALL_GW=`echo $INSTALL_GW | tr '[A-Z]' '[a-z]'`
+            INSTALL_MGMT=`echo $INSTALL_MGMT | tr '[A-Z]' '[a-z]'`
+            POST_FIRST_TIME_WIZARD=`echo $POST_FIRST_TIME_WIZARD | tr '[a-z]' '[A-Z]'`
+            
+            #set password hash
+            echo "POST_CONFIGURATION_SCRIPT: setting admin password." | tee /dev/console
+            clish -c "set user admin password-hash $ADMIN_PW_HASH" -s
+            
+            #set expert password
+            echo "POST_CONFIGURATION_SCRIPT: setting expert password." | tee /dev/console
+            clish -c "set expert-password-hash $EXPERT_PW_HASH" -s
+            
+            #set default shell
+            echo "POST_CONFIGURATION_SCRIPT: setting admin shell to $ADMIN_SHELL." | tee /dev/console
+            clish -c "set user admin shell $ADMIN_SHELL" -s
+            
+            # set dhcp default gateway interface - if the selection is eth0 - do nothing - eth0 is the default
+            
+            if [ "$DEFAULT_GW_INTERFACE" != "eth0" ]
+            then
+            NEWGW=`/bin/simpledhcp -r $DEFAULT_GW_INTERFACE | egrep '^0.0.0.0' | awk '{print $3}'`
+            
+            echo "POST_CONFIGURATION_SCRIPT:  Setting default GW to $i "
+            clish -c 'set static-route default off' -s
+            clish -c "set static-route default nexthop gateway address $NEWGW on" -s
+            
+            ip route >> /var/log/fwtlog
+            ifconfig -a >> /var/log/fwtlog
+            fi
+            
+            
+            ###########
+            # configure gw only system
+            ###########
+            
+            echo "/etc/hosts before fwt" >> /var/log/fwtlog
+            cat /etc/hosts >> /var/log/fwtlog
+        
+            #gateway only config
+            if [[ "$INSTALL_GW" == "true" && "$INSTALL_MGMT" == "false" ]]
+            then
+            	#configure first time wizard
+            	echo "POST_CONFIGURATION_SCRIPT: beginning first time wizard - configuring security gateway only system" | tee /dev/console >> /var/log/fwtlog
+            	CNFSYSTEM=`config_system -s "install_security_gw=$INSTALL_GW&install_ppak=true&gateway_cluster_member=true&install_security_managment=$INSTALL_MGMT&ftw_sic_key=$SIC_KEY"`
+            	echo "POST_CONFIGURATION_SCRIPT: first time wizard completed" | tee /dev/console >> /var/log/fwtlog
+            	echo "$CNFSYSTEM" | tee /dev/console >> /var/log/fwtlog
+            	echo "/etc/hosts after fwt" >> /var/log/fwtlog
+            	cat /etc/hosts >> /var/log/fwtlog
+            	###########################
+            	# install GW hotfixes -  hotfixes must be on /var/tmp/hotfixes for this section to work.
+            	# install jumbo 159
+            	###########################
+            	if [[ -e "/var/tmp/hotfixes/jumbo_159/Check_Point_R77_30_JHF_GA_1_Legacy_CLI.tgz" && "$JUMBO_159" == "true" ]]
+            	then 
+            	    echo "POST_CONFIGURATION_SCRIPT: Installing Hotfixes" | tee /dev/console >> /var/log/fwtlog
+            	    cd /var/tmp/hotfixes/jumbo_159/
+            	    echo "POST_CONFIGURATION_SCRIPT: Installing jumbo hotfix 159" | tee /dev/console >> /var/log/fwtlog
+            	    tar -xzvf Check_Point_R77_30_JHF_GA_1_Legacy_CLI.tgz
+            	    echo -e 'y\nn\n' | ./UnixInstallScript 
+            	    echo "POST_CONFIGURATION_SCRIPT: Jumbo Hotfix 159 completed" | tee /dev/console >> /var/log/fwtlog
+            	fi
+            	############################
+            	#install vsec controller enforcer hotfix
+            	############################
+            	if [[ -e "/var/tmp/hotfixes/vsec_controller/Check_Point_R77.30_vSEC_Controller_Enforcer_Hotfix1_Gaia_sk111963.tgz"  && "$VSEC_HOTFIX" == "true" ]]
+            	then
+            	    echo "POST_CONFIGURATION_SCRIPT: Installing Hotfixes" | tee /dev/console >> /var/log/fwtlog
+            	    cd /var/tmp/hotfixes/vsec_controller/
+            	    echo "POST_CONFIGURATION_SCRIPT: Installing vsec controller enforcer hotfix" | tee /dev/console >> /var/log/fwtlog
+            	    tar -xzvf Check_Point_R77.30_vSEC_Controller_Enforcer_Hotfix1_Gaia_sk111963.tgz
+            	    yes | ./fw1_wrapper_HOTFIX_GIRAFFE_V2_990016005_1
+            	    echo "POST_CONFIGURATION_SCRIPT: Installing vsec controller enforcer hotfix completed" | tee /dev/console >> /var/log/fwtlog
+            	fi
+                #copy the latest driver - workaround as jumbo replaced the virtio driver , will be fixed on the new jumbo
+                cp /var/tmp/virtio-64bit.ko /lib/modules/2.6.18-92cpx86_64/kernel/drivers/virtio/virtio.ko 
+                #replace the sim binary , this way sim affinity would work.
+                cp /var/tmp/sim /opt/CPppak-R77/bin/sim
+                ##################
+                # if POST_FIRST_TIME_WIZARD = "Y" then initiate the GW registration upon reboot
+                ###########
+
+                case $POST_FIRST_TIME_WIZARD in
+                     "REGISTER")
+                     #
+                     # register service so gateway will register upon reboot
+                     #
+     
+                     echo "POST_CONFIGURATION_SCRIPT: REGISTER option selected - gateway will reboot and will automatically register" | tee /dev/console >> /var/log/fwtlog
+                     #calculate main IP - ip address to which the management will push the policy to
+                     MAIN_IP=`ip route get $SMARTCENTER_IP | grep src | sed 's/.*src\ \(.\)/\1/' | tr -d ' '`
+                     cp_api_url="https://$SMARTCENTER_IP"
+                     GATEWAY_NAME=`hostname`
+     
+
+                     #
+                     # create rest API calls to register and policy install to be run upon reboot - gateway registration
+                     #
+     
+                     #get external interface details
+                     EXTIF=`ip route | grep default | awk '{print $5}'`
+                     EXTIP=`ifconfig $EXTIF | grep inet | awk '{print $2}' | sed s/addr://g`
+                     EXTMASK=`ifconfig $EXTIF | grep inet | awk '{print $4}' | sed s/Mask://g`                            
+                     echo '#!/bin/bash' > /etc/rc3.d/S99xsicxpush
+                     echo ". /opt/CPshared/5.0/tmp/.CPprofile.sh" >> /etc/rc3.d/S99xsicxpush
+     
+                     echo "echo \"AUTO_REGISTRATION: Starting Auto Registration Process for : $GATEWAY_NAME \"| tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+                     echo "echo \"AUTO_REGISTRATION: retrieving login token \"| tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+                     # retrieve token
+                     echo "SID=\`curl -k -H \"Content-Type: application/json\" -H \"Accept: bla\" -X POST -d '{\"user\":\"$SMARTCENTER_USER\",\"password\":\"$SMARTCENTER_PW\"}' $cp_api_url/web_api/login | grep sid | awk '{print \$3}' | sed  's/\\\"\([^\"]*\)\\\"\,/\1/'\`" >> /etc/rc3.d/S99xsicxpush
+     
+                     echo "echo \"AUTO_REGISTRATION: creating gateway object : $GATEWAY_NAME \"| tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+                     # create gateway object
+                     echo "curl -k \
+                     -H \"Content-Type: application/json\" \
+                     -H \"Accept: bla\" \
+                     -H \"X-chkp-sid: \$SID\" \
+                     -X POST -d '{\"name\": \"$GATEWAY_NAME\",
+                     \"ip-address\": \"$MAIN_IP\",
+                     \"version\": \"$VERSION\",
+                     \"firewall\": \"true\",
+                     \"vpn\": \"false\",
+                     \"ips\": \"false\",
+                     \"application-control\": \"false\",
+                     \"url-filtering\": \"false\",
+                     \"anti-bot\": \"false\",
+                     \"anti-virus\": \"false\",
+                     \"data-awareness\": \"false\",
+                     \"threat-emulation\": \"false\",
+                     \"one-time-password\" : \"$SIC_KEY\",
+                     \"interfaces\" : [ {
+                     \"name\" : \"$EXTIF\",
+                     \"ipv4-address\" : \"$EXTIP\",
+                     \"ipv4-network-mask\" : \"$EXTMASK\",
+                     \"anti-spoofing\" : \"$ANTISPOOFING\",
+                     \"anti-spoofing-settings\" : {\"action\" : \"$ANTISPOOFING_ACTION\" } ,
+                     \"topology\" : \"EXTERNAL\" }" >> /etc/rc3.d/S99xsicxpush
+     
+                     # loop thru each interface to set the topology and add it to the json request
+     
+                     for INTF in `ifconfig -a | grep eth | grep -v $EXTIF | awk '{print $1}'`
+                     do
+                         INIP=`ifconfig $INTF | grep inet | awk '{print $2}' | sed s/addr://g`
+                         INMASK=`ifconfig $INTF | grep inet | awk '{print $4}' | sed s/Mask://g`
+                         if [ ! -z "$INIP" ]
+                         then
+                     echo ",{
+                     \"name\" : \"$INTF\",
+                     \"ipv4-address\" : \"$INIP\",
+                     \"ipv4-network-mask\" : \"$INMASK\",
+                     \"anti-spoofing\" : \"$ANTISPOOFING\",
+                     \"anti-spoofing-settings\" : {\"action\" : \"$ANTISPOOFING_ACTION\" } ,
+                     \"topology\" : \"INTERNAL\" ,
+                     \"topology-settings\" : {\"ip-address-behind-this-interface\" : \"network defined by the interface ip and net mask\"} }" >>/etc/rc3.d/S99xsicxpush
+                        fi
+                     done
+                     echo "] }' $cp_api_url/web_api/add-simple-gateway" >>/etc/rc3.d/S99xsicxpush
+     
+                     # make script executable
+                     chmod +x /etc/rc3.d/S99xsicxpush
+     
+                     #publish changes
+                     echo "echo \"AUTO_REGISTRATION: Publishing changes\" | tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+                     echo "curl -k \
+                     -H \"Content-Type: application/json\" \
+                     -H \"Accept: bla\" \
+                     -H \"X-chkp-sid: \$SID\" \
+                     -X POST -d '{}' \
+                     $cp_api_url/web_api/publish" >> /etc/rc3.d/S99xsicxpush
+                     echo "echo \"AUTO_REGISTRATION: Auto_Registration_Completed\" | tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+     
+                     if [ "$INSTALL_POLICY" == "true" ]
+                     then
+                        echo "sleep 10" >> /etc/rc3.d/S99xsicxpush
+                        echo "echo \"Installing Policy $ACCESS_POLICY to $GATEWAY_NAME\" | tee /dev/console" >> /etc/rc3.d/S99xsicxpush
+                        #install policy
+                        echo "curl -k \
+                        -H \"Content-Type: application/json\" \
+                        -H \"Accept: bla\" \
+                        -H \"X-chkp-sid: \$SID\" \
+                        -X POST -d '{\"policy-package\":\"$ACCESS_POLICY\",
+                        \"access\":\"true\",
+                        \"threat-prevention\":\"false\",
+                        \"targets\":[\"$GATEWAY_NAME\"]}' \
+                        $cp_api_url/web_api/install-policy" >> /etc/rc3.d/S99xsicxpush
+                     fi
+     
+                     #logout
+     
+                     echo "curl -k -H \"Content-Type: application/json\" -H \"Accept: bla\" -H \"X-chkp-sid: \$SID\" -X POST -d '{}' $cp_api_url/web_api/logout" >> /etc/rc3.d/S99xsicxpush
+     
+                     #remove registration process from boot
+                     #echo "rm /etc/rc3.d/S99xsicxpush" >> /etc/rc3.d/S99xsicxpush
+                     ;;
+                     "template")
+                     echo "POST_CONFIGURATION_SCRIPT: TEMPLATE option selected - gateway will be prep for Snapshot - manual registration/SIC will be required when using this image" | tee /dev/console >> /var/log/fwtlog
+                     #to be updated
+                     echo "POST_CONFIGURATION_SCRIPT: Done .... Please poweroff instance and take snapshot to create a template" | tee /dev/console >> /var/log/fwtlog
+                     ;;
+                     "temp_and_reg")
+                     #to be updated
+
+                     ;;
+                esac
+            	shutdown -r now
+            fi
+
+            ###########
+            # configure mgmt only system
+            ###########
+
+            if [[ "$INSTALL_GW" == "false" && "$INSTALL_MGMT" == "true" ]]
+            then
+            	echo "POST_CONFIGURATION_SCRIPT: beginning first time wizard - configuring mgmt only system" | tee /dev/console >> /var/log/fwtlog
+            	#configure first time wizard
+            	CNFSYSTEM=`config_system -s "install_security_gw=$INSTALL_GW&install_security_managment=$INSTALL_MGMT&install_mgmt_primary=true&mgmt_admin_name=$MGMT_ADMIN_NAME&mgmt_admin_passwd=$MGMT_ADMIN_PW&mgmt_gui_clients_radio=$MGMT_GUI_RADIO"`
+            	echo "POST_CONFIGURATION_SCRIPT: first time wizard completed" | tee /dev/console >> /var/log/fwtlog
+            	echo "$CNFSYSTEM" | tee /dev/console >> /var/log/fwtlog
+            	echo "POST_CONFIGURATION_SCRIPT: system will reboot now" | tee /dev/console >> /var/log/fwtlog
+            	shutdown -r now
+            fi
+
+
+            ###########
+            # all in one config_system
+            ###########
+            if [[ "$INSTALL_GW" == "true" && "$INSTALL_MGMT" == "true" ]]
+            then
+            	#configure first time wizard
+            	echo "configuring all in one system" >> /var/log/fwtlogecho "POST_CONFIGURATION_SCRIPT: beginning first time wizard - configuring all in one system" | tee /dev/console >> /var/log/fwtlog
+            	CNFSYSTEM=`config_system -s "install_security_gw=$INSTALL_GW&install_ppak=true&gateway_cluster_member=false&install_security_managment=$INSTALL_MGMT&install_mgmt_primary=true&mgmt_admin_name=$MGMT_ADMIN_NAME&mgmt_admin_passwd=$MGMT_ADMIN_PW&mgmt_gui_clients_radio=$MGMT_GUI_RADIO"`
+            	echo "POST_CONFIGURATION_SCRIPT: first time wizard completed" | tee /dev/console >> /var/log/fwtlog
+            	echo "$CNFSYSTEM" | tee /dev/console >> /var/log/fwtlog
+            	echo "POST_CONFIGURATION_SCRIPT: system will reboot now" | tee /dev/console >> /var/log/fwtlog
+            	shutdown -r now
+            fi
+
+            echo "/etc/hosts after fwt" >> /var/log/fwtlog
+            cat /etc/hosts >> /var/log/fwtlog   
+
+
+
+## Server Group with Affinity - anti-affinity = different compute nodes
+## Affinity = same compute node
+   
+ cp_cluster_group:
+  type: OS::Nova::ServerGroup
+  properties:
+   name: cp_affinity_group
+   policies: [ get_param: nova_affinity ]
+
+## Check Point Cluster Member 1
+ cp_member1:
+  type: OS::Nova::Server
+  depends_on: cp_cluster_group
+  properties:
+   name: {get_param: cp_gateway_name}
+   image: {get_param: cp_glance_image}
+   flavor: {get_param: cp_gw_flavor}
+   #availability_zone: nova
+   config_drive: true
+   scheduler_hints: { group: { get_resource: cp_cluster_group } }
+   networks:
+    - port: { get_resource: cp_external_port }
+    - port: { get_resource: cp_internal_port }
+   user_data_format: RAW
+   user_data: { get_resource: cp_config_script }
