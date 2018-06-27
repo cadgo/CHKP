@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  gather_facts: False
+  roles:
+    - { role: Azure.azure_modules }
+  tasks:
+   - name: Power ON Machine
+     azure_rm_virtualmachine:
+       resource_group: develEnviron
+       name: develEnviron
+
+   - name: Gather facts for a public ip
+     azure_rm_publicipaddress_facts:
+       resource_group: develEnviron
+       name: develEnviron-ip
+     register: salida
+
+   - debug: msg="{{ item.value }}"
+     loop: "{{ lookup('dict', salida) }}"
