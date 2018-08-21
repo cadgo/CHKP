@@ -10,3 +10,10 @@
   ubuntuUser: carlos
   #for some reason ubuntuLocation, has to be defined in this way
   ubuntuLocation: eastus
+  #
+  NetName: vnet
+  NetPref: 10.0.0.0/16
+  Sub1Pref: 10.0.1.0/24
+  Sub2Pref: 10.0.2.0/24
+  IPFront: 10.0.1.10
+  IPBack: 10.0.2.10

@@ -20,6 +20,18 @@
            value: "{{ Password }}"
          sicKey:
            value: "{{ sickey }}"
+         virtualNetworkName:
+           value: "{{ NetName }}"
+         virtualNetworkAddressPrefix:
+           value: "{{ NetPref  }}"
+         Subnet1Prefix:
+           value: "{{ Sub1Pref }}"
+         Subnet2Prefix:
+           value: "{{ Sub2Pref }}" 
+         Subnet1StartAddress:
+           value: "{{ IPFront }}"
+         Subnet2StartAddress:
+           value: "{{ IPBack }}"
 
     # - name: Create Azure Deploy
     #   azure_rm_deployment:

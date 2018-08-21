@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: False
+  roles:
+    - { role: Azure.azure_modules }
+  vars_files:
+    - azure_vars.yml
+  tasks:
+   - name: Add Tags
+     azure_rm_virtualmachine:
+       resource_group: "{{ ResourceGroup }}"
+       name: "{{ GwName }}"
+       vm_size: Standard_D3_v2
+       append_tags: True
+       tags:
+          'x-chkp-management': 'AnsibleSMS'
+          'x-chkp-template': 'Azure'
