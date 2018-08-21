@@ -1,0 +1,395 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "routeTables_Backend_name": {
+            "defaultValue": "Backend",
+            "type": "String"
+        },
+        "routeTables_Frontend_name": {
+            "defaultValue": "Frontend",
+            "type": "String"
+        },
+        "virtualNetworks_vnet_name": {
+            "defaultValue": "vnet",
+            "type": "String"
+        },
+        "virtualMachines_FwAzure_name": {
+            "defaultValue": "FwAzure",
+            "type": "String"
+        },
+        "publicIPAddresses_FwAzure_name": {
+            "defaultValue": "FwAzure",
+            "type": "String"
+        },
+        "networkInterfaces_FwAzure_eth0_name": {
+            "defaultValue": "FwAzure-eth0",
+            "type": "String"
+        },
+        "networkInterfaces_FwAzure_eth1_name": {
+            "defaultValue": "FwAzure-eth1",
+            "type": "String"
+        },
+        "storageAccounts_bootdiagrg5j6arbki7mo_name": {
+            "defaultValue": "bootdiagrg5j6arbki7mo",
+            "type": "String"
+        },
+        "virtualMachines_FwAzure_id": {
+            "defaultValue": "/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Compute/disks/FwAzure",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Compute/virtualMachines/FwAzure'.",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_FwAzure_name')]",
+            "apiVersion": "2017-12-01",
+            "location": "eastus",
+            "plan": {
+                "name": "sg-byol",
+                "product": "check-point-vsec-r80",
+                "publisher": "checkpoint"
+            },
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F",
+                "x-chkp-management": "AnsibleSMS",
+                "x-chkp-template": "Azure"
+            },
+            "scale": null,
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D3_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "checkpoint",
+                        "offer": "check-point-vsec-r80",
+                        "sku": "sg-byol",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[parameters('virtualMachines_FwAzure_name')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[parameters('virtualMachines_FwAzure_id')]"
+                        },
+                        "diskSizeGB": 100
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('virtualMachines_FwAzure_name'),'fwazure', parameters('virtualMachines_FwAzure_name'))]",
+                    "adminUsername": "notused",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FwAzure_eth0_name'))]",
+                            "properties": {
+                                "primary": true
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FwAzure_eth1_name'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('https', '://', parameters('storageAccounts_bootdiagrg5j6arbki7mo_name'), '.blob.core.windows.net', '/')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FwAzure_eth0_name'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FwAzure_eth1_name'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_bootdiagrg5j6arbki7mo_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/networkInterfaces/FwAzure-eth0'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_FwAzure_eth0_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "6308fe5b-a508-4912-aeb9-c0715f1e0157",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "etag": "W/\"12693cc4-dfa7-4eff-9a3d-555299757ef1\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.0.1.10",
+                            "privateIPAllocationMethod": "Static",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_FwAzure_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_name')), '/subnets/Frontend')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "2bsa0n2nti3enkvmdlzok0zria.bx.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-4E-B8-8E",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": true,
+                "primary": true
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_FwAzure_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/networkInterfaces/FwAzure-eth1'.",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_FwAzure_eth1_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "f53d9ac8-542f-4f05-af77-3c10cb4701ab",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig2",
+                        "etag": "W/\"5a2ef0dd-77d8-4317-8275-89738dcaf187\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "10.0.2.10",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_name')), '/subnets/Backend')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "2bsa0n2nti3enkvmdlzok0zria.bx.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-4E-BB-10",
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": true,
+                "primary": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/publicIPAddresses/FwAzure'.",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "name": "[parameters('publicIPAddresses_FwAzure_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "d979f6f8-f957-4a44-9155-4b21958adb2d",
+                "ipAddress": "40.117.120.17",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 30,
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('publicIPAddresses_FwAzure_name'),'fwazure-rg5j6arbki7mo')]",
+                    "fqdn": "[concat(parameters('publicIPAddresses_FwAzure_name'),'fwazure-rg5j6arbki7mo.eastus.cloudapp.azure.com')]"
+                },
+                "ipTags": []
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/routeTables/Backend'.",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_Backend_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "To-Internet",
+                        "etag": "W/\"a3d3592a-8d5e-4c8d-a208-fc071ac5fe8d\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.0.2.10"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/routeTables/Frontend'.",
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_Frontend_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "Local-Subnet",
+                        "etag": "W/\"a8911638-1039-45cb-85b6-ebfe504aa103\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.1.0/24",
+                            "nextHopType": "VnetLocal"
+                        }
+                    },
+                    {
+                        "name": "To-Internal",
+                        "etag": "W/\"a8911638-1039-45cb-85b6-ebfe504aa103\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.0.0/16",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "10.0.1.10"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Network/virtualNetworks/vnet'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_vnet_name')]",
+            "apiVersion": "2018-02-01",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "370d64e0-9a8d-463a-aaac-1af2e56b3140",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "Frontend",
+                        "etag": "W/\"2f47aa9a-f413-4a0a-84ce-3bb8921cf4ff\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.1.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Frontend_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "Backend",
+                        "etag": "W/\"2f47aa9a-f413-4a0a-84ce-3bb8921cf4ff\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "addressPrefix": "10.0.2.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Backend_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Frontend_name'))]",
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_Backend_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/CheckPointDemo/providers/Microsoft.Storage/storageAccounts/bootdiagrg5j6arbki7mo'.",
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "name": "[parameters('storageAccounts_bootdiagrg5j6arbki7mo_name')]",
+            "apiVersion": "2018-03-01-preview",
+            "location": "eastus",
+            "tags": {
+                "provider": "30DE18BC-F9F6-4F22-9D30-54B8E74CFD5F"
+            },
+            "scale": null,
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": false,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
