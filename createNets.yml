@@ -1,0 +1,29 @@
+---
+- hosts: localhost   # Note #2 in the Description section
+  vars_files:
+    - varsaa
+  tasks:
+  - name: login                           # You have to login to the management
+    check_point_mgmt:
+      command: login
+      parameters:
+        username: "{{mgmt_user}}"           # Variables set in /etc/ansible/hosts, to avoid needing
+        password: "{{mgmt_password}}"       # to type your login details in every playbook.
+        management: "{{mgmt_server}}"
+      fingerprint: "{{mgmt_key}}"
+    register: login_response                # Register the output from the login
+
+  - name: "Net_{{ item }}"
+    check_point_mgmt:
+      command: add-network
+      parameters:
+       name: "Net_{{ item }}"
+       subnet: "{{ item | ipaddr('network') }}"
+       subnet-mask: "{{ item | ipaddr('netmask') }}"
+      session-data: "{{ login_response }}"
+    loop: "{{ Redes }}"
+
+  - name: "publish"
+    check_point_mgmt:
+      command: publish
+      session-data: "{{ login_response }}"

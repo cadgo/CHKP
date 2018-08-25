@@ -1,0 +1,9 @@
+---
+- name: Crear Redes de fichero
+  hosts: localhost
+  connection: local
+  vars: 
+    - Network: "187.193.136.0/21"
+  tasks:
+    - name: Crear fichero prueba
+      template: src=vars.j2 dest=prueba1.txt
