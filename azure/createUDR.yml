@@ -1,0 +1,41 @@
+---
+- hosts: localhost
+  gather_facts: False
+  roles:
+    - { role: Azure.azure_modules }
+  vars_files:
+    - azure_vars.yml
+  tasks:
+   - name: Create FW Azure Deploy
+     azure_rm_deployment:
+       state: present
+       resource_group_name: routetbl
+
+       template:
+        "$schema": https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#
+        contentVersion: 1.0.0.0
+        parameters:
+          routeTables_routetbl_name:
+            defaultValue: routetbl
+            type: String
+        variables: {}
+        resources:
+        - comments: 'Generalized from resource: ''/subscriptions/a509cd76-49b3-4cf1-9bd6-e4b9a7594335/resourceGroups/routetbl/providers/Microsoft.Network/routeTables/routetbl''.'
+          type: Microsoft.Network/routeTables
+          name: "[parameters('routeTables_routetbl_name')]"
+          apiVersion: '2018-02-01'
+          location: "{{ TmLocation }}"
+          scale: 
+          properties:
+            provisioningState: Succeeded
+            disableBgpRoutePropagation: false
+            routes:
+            - name: defualRoute
+              etag: W/"fd99792c-3bb4-4dad-bee2-ffacba70fe69"
+              properties:
+                provisioningState: Succeeded
+                addressPrefix: 0.0.0.0/0
+                nextHopType: VirtualAppliance
+                nextHopIpAddress: 10.0.2.10
+          dependsOn: []
+

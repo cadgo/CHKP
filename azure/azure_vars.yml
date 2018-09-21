@@ -7,6 +7,7 @@
   UbuntuNetwork: 10.0.3.0/24
   UbuntuName: tpothoneypod
   TmLocation: East US
+  #TmLocation: Canada Central
   ubuntuUser: carlos
   #for some reason ubuntuLocation, has to be defined in this way
   ubuntuLocation: eastus
