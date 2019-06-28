@@ -2,9 +2,9 @@ FROM python:3
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /code
 WORKDIR /code
-COPY requirments.txt /code/
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y ansible
+RUN wget -O requirments.txt https://raw.githubusercontent.com/Azure/azure_modules/master/files/requirements-azure.txt
 RUN pip3 install -r requirments.txt
 RUN ansible-galaxy install azure.azure_modules
 ADD . /code/
