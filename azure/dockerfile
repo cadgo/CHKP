@@ -9,3 +9,4 @@ RUN pip3 install -r requirments.txt
 RUN ansible-galaxy install azure.azure_modules
 ADD . /code/
 RUN /code/config.sh subscription_id client_id secret tenant
+ENV PATH "$PATH:/Terraform"

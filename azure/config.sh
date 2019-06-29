@@ -16,7 +16,7 @@ terra_download(){
 	mkdir -p $TERRA_FOLDER
 	#cd /Terraform
 	wget -qO - $TERRA_DOWN | zcat >> $TERRA_FOLDER$TERRA_FILE 
-        chmod +x $TERRA_FOLDER$TERRA_FILE	
+        chmod +x $TERRA_FOLDER$TERRA_FILE
 }
 
 if [ $# -ne 4 ]
