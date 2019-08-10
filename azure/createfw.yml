@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: False
   roles:
-    - { role: Azure.azure_modules }
+    - { role: azure.azure_modules }
   vars_files:
     - azure_vars.yml
   tasks:
