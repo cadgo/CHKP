@@ -24,7 +24,7 @@ loggerf "Creating json database for hosts"
 echo "dumphost"
 totalhosts=`cat hosts.file | jq '.total'`
 loggerf "dumping hosts for looping"
-
+dump_total_hosts sid.txt $hstfile $domip
 
 if [ -f $hostdb ]; then
         loggerf "File $hostdb exists creating new one"
@@ -58,9 +58,11 @@ do
 	fi
 done
 if [ -n $domip ]; then
+	loggerf "publicando informacion"
         mgmt_cli -d $domip publish -s sid.txt
 	mgmt_cli -d $domip logout -s sid.txt
 else
+	loggerf "publicando informacion"
 	mgmt_cli publish -s sid.txt
         mgmt_cli logout -s sid.txt
 fi
