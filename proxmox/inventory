@@ -1,0 +1,4 @@
+[localhost]
+127.0.0.1 ansible_user=carlos 
+[chkp_prox]
+192.168.100.31 

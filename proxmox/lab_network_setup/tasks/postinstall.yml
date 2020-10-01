@@ -1,0 +1,18 @@
+---
+  - name: Just a little bit more
+    pause:
+      minutes: 3
+
+  - name: Waiting to become online
+    wait_for:
+      host: "{{ eth0_real_ip }}"
+      port: 22
+      delay: 80
+      timeout: 300
+    delegate_to: "{{ eth0_real_ip }}"
+    retries: 3
+
+  - name: removing interface IP 192.168.100.31
+    command: clish -c 'delete interface eth0 alias eth0:1' -s
+    delegate_to: "{{ eth0_real_ip }}"
+

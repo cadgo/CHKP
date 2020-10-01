@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files: 
+    - vault_password.yml
+  roles:
+    - role: chkp_prox_clone
+      vars:
+        api_password: "{{ password }}" 
+
+- hosts: chkp_prox
+  gather_facts: False
+  vars:
+    vmname: lab1gw
+  roles:
+    - role: lab_network_setup
+

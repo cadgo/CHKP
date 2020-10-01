@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: Update Config 
+    proxmox_kvm:
+      api_user    : root@pam
+      api_password: 
+      api_host    : 192.168.100.10
+      name        : R8040Test2  # The target VM name
+      node        : proxmoxer
+      net         : '{"net0":"virtio,bridge=vmbr3,"}'
+      cores       : 4
+      update      : yes

@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: clone VM Test 
+    proxmox_kvm:
+      api_user    : root@pam
+      api_password: 
+      api_host    : 192.168.100.10
+      clone       : R8040Template   # The VM source
+      name        : R8040Test2  # The target VM name
+      node        : proxmoxer
+      storage     : VM
+      format      : qcow2
+      timeout     : 500 

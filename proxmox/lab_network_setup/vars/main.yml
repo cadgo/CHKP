@@ -1,0 +1,15 @@
+---
+# vars file for lab_network_setup
+defaul_ip: 192.168.100.31
+default_gw: 192.168.100.1
+#eth0_real_ip: 192.168.100.41
+eth0_real_mask: 24
+SIC: vpn12345
+additional_ifs:
+  eth1:
+    ip_address: 10.1.1.1
+    mask: 24
+  eth2:
+    ip_address: 10.2.2.1
+    mask: 24
+

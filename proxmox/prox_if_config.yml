@@ -1,0 +1,8 @@
+---
+- hosts: chkp_prox
+  gather_facts: False
+  vars_files:
+    - chkp_prox_clone/vars/main.yml
+  roles:
+    - role: lab_network_setup
+

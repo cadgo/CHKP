@@ -1,0 +1,29 @@
+---
+  - name: Waiting to become online
+    wait_for:
+      host: "{{ defaul_ip }}"
+      port: 22
+      delay: 5
+      timeout: 600 
+    tags:
+      - firewall
+      - SMS
+
+  - name: Configure DNS
+    command: "{{ item }}"
+    with_items:
+      - clish -c 'set dns primary 8.8.8.8' -s
+      - clish -c 'set dns primary 8.8.4.4' -s
+      - clish -c 'set static-route default nexthop gateway address {{ default_gw }} on' -s
+    tags:
+      - firewall
+      - SMS
+
+  - name: Configure Additional interfaces
+    shell: |
+      clish -c 'set interface {{ item.key }} ipv4-address {{ item.value.ip_address }} mask-length {{ item.value.mask }}' -s
+      clish -c 'set interface {{ item.key }} state on' -s
+    with_dict: "{{ additional_ifs }}"
+    tags:
+      - firewall
+

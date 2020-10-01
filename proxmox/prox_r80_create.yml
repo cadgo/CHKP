@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files: 
+    - vault_password.yml
+  roles:
+    - role: chkp_prox_clone
+      vars:
+        api_password: "{{ password }}" 
+

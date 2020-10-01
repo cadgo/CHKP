@@ -1,0 +1,24 @@
+---
+  - name: Running FTW as {{ type_implement }}
+    block:
+      - name: Running FTW as {{ role_lab }}
+        raw: config_system -s "hostname={{ vmname }}&ftw_sic_key={{SIC }}&timezone=\'Etc/GMT-6\'&install_security_managment=false&install_mgmt_primary=false&install_security_gw=true&gateway_daip=false&install_ppak=true&gateway_cluster_member=false&download_info=true&iface=eth0&ipstat_v4=manually&ipaddr_v4={{ eth0_real_ip }}&masklen_v4={{ eth0_real_mask }}&ipstat_v6=off"
+        ignore_unreachable: true
+
+      - name: Check Installation to Complete
+        wait_for:
+          delay: 10
+          timeout: 1800
+          path: /var/log/ftw_install.log
+          search_regex: Complete
+      
+      - name: removing interface
+        command: clish -c 'delete interface eth0 alias eth0:1' -s
+        delegate_to: "{{ eth0_real_ip }}"
+
+      - name: reboot
+        command: "/sbin/shutdown -r now"
+        async: 1
+        poll: 0
+        ignore_errors: true
+        delegate_to: "{{ eth0_real_ip }}"

@@ -1,0 +1,15 @@
+---
+- hosts: fw1
+  gather_facts: False
+  roles:
+    - role: gaia_setup
+      vars:
+        eth0_ipv4: 192.168.100.31
+        eth0_mask: "24"
+        eth1_ipv4: 10.89.0.1
+        eth1_mask: "24"
+        eth2_ipv4: 10.89.1.1
+        eth2_mask: "24"
+        hostname: TestAnsible
+
+
