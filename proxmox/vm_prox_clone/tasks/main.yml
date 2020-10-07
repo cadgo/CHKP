@@ -1,0 +1,4 @@
+---
+# tasks file for chkp_prox_clone
+- import_tasks: prox_clone.yml 
+- import_tasks: start_instance.yml

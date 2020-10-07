@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files:
+    - vault_password.yml
+  tasks:
+    - name: Generating SMS
+      import_task: prox_r80_create_t.yml
+      #- name: Configuring NW and FTW
+        #  import_playbook: prox_if_config.yml
+        #  tags:
+        #    - SMS
+        #    - firewall
+

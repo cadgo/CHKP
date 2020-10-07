@@ -1,0 +1,14 @@
+---
+  - name: Waiting some seconds to finish clone
+    pause:
+      seconds: 30
+
+  - name: Starting intstance {{ vmname }}
+    proxmox_kvm:
+      api_user    : root@pam
+      api_password: "{{ api_password }}"
+      api_host    : "{{ prox_ip }}"
+      name        : "{{ vmname }}"
+      node        : "{{ node }}"
+      state       : started
+

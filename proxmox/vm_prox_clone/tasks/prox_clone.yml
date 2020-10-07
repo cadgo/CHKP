@@ -1,0 +1,12 @@
+---
+  - name: Creating instance {{ vmname }} 
+    proxmox_kvm:
+      api_user    : root@pam
+      api_password: "{{ api_password }}"
+      api_host    : "{{ prox_ip }}"
+      clone       : "{{ template }}" 
+      name        : "{{ vmname }}"
+      node        : "{{ node }}"
+      storage     : "{{ storage }}"
+      format      : qcow2
+      timeout     : 500 
