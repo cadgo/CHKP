@@ -1,5 +1,0 @@
----
-# tasks file for lab_network_setup
-- import_tasks: config_network.yml
-- import_tasks: ftw_install.yml
-  #- import_tasks: postinstall.yml

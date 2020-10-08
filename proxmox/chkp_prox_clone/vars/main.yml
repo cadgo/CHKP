@@ -1,7 +1,0 @@
----
-# vars file for chkp_prox_clone
-prox_ip: 192.168.100.10
-vmname: R80Demo
-node: proxmoxer
-storage: VM
-template: R8040Template   

@@ -1,4 +1,5 @@
 [localhost]
-127.0.0.1 ansible_user=carlos 
+127.0.0.1 ansible_python_interpreter=/usr/bin/python3
+
 [chkp_prox]
 192.168.100.31 

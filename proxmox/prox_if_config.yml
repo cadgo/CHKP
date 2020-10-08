@@ -1,8 +1,10 @@
 ---
-- hosts: chkp_prox
+- hosts: 192.168.100.31
   gather_facts: False
   vars_files:
-    - chkp_prox_clone/vars/main.yml
+    - vm_prox_clone/vars/main.yml
   roles:
-    - role: lab_network_setup
+    - role: if_ftw_config
+      vars:
+        eth0_real_ip: 192.168.100.70
 
