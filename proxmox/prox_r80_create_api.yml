@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  gather_facts: false
+  connection: local
+  vars_files: 
+    - vault_password.yml
+  roles:
+    - role: prox_api

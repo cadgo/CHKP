@@ -1,0 +1,40 @@
+---
+  - name: cloning instance "{{ clone_id }}"
+    uri: 
+      url: "https://{{prox_ip}}:{{prox_port}}/api2/json/nodes/{{node}}/qemu/{{clone_id}}/clone?newid={{new_id}}&name={{vmname}}&format=qcow2&full=1&storage={{storage}}"
+      method: POST
+      validate_certs: False
+      headers:
+        CSRFPreventionToken: "{{token}}"
+        Cookie: "PVEAuthCookie={{ticket}}"
+    register: instance_out
+
+  - name: obtaining UPID
+    set_fact: UPID="{{instance_out.json.data}}"
+
+    #- debug: msg="UPID DATA {{UPID}}"
+
+  - name: Monitoring the cloning
+    uri:
+      url: "https://{{prox_ip}}:{{prox_port}}/api2/json/nodes/{{node}}/tasks/{{UPID}}/status"
+      method: GET
+      status_code: 200
+      validate_certs: False
+      headers:
+        CSRFPreventionToken: "{{token}}"
+        Cookie: "PVEAuthCookie={{ticket}}"
+    register: Status
+    until: Status.json.data.status == "stopped"
+    retries: 50
+    delay: 30
+    
+  - name: Starting instance "{{vmname}}"
+    uri:
+      url: "https://{{prox_ip}}:{{prox_port}}/api2/json/nodes/{{node}}/qemu/{{new_id}}/status/start"
+      method: POST
+      status_code: 200
+      validate_certs: False
+      headers:
+        CSRFPreventionToken: "{{token}}"
+        Cookie: "PVEAuthCookie={{ticket}}"
+

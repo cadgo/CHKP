@@ -3,15 +3,21 @@
   gather_facts: False
   vars_files: 
     - vault_password.yml
-  roles:
-    - role: chkp_prox_clone
+  tasks:
+    - name: proxmox clone
+      include_role: 
+        name: prox_api
       vars:
-        api_password: "{{ password }}" 
+        api_password: "{{ password }}"
+        storage: evossd1
 
 - hosts: chkp_prox
   gather_facts: False
-  vars:
-    vmname: lab1gw
-  roles:
-    - role: lab_network_setup
-
+  tasks:
+    - name: Run FTW
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: Lab1
+        install_gw: True
+        eth0_real_ip: 192.168.100.67
