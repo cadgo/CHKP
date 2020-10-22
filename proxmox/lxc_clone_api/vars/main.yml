@@ -1,0 +1,20 @@
+---
+# vars file for prox_api
+prox_ip: 192.168.100.10
+prox_port: 8006
+node: proxmoxer
+hostname: PC
+user: root@pam
+storage: VM
+ostemplate: local:vztmpl/debian-10-standard_10.5-1_amd64.tar.gz
+cores: 1
+memory: 512
+swap: 512
+lxc_password: vpn123
+rootfs: "{{storage}}:8"
+nameserver: 8.8.8.8
+lxc_bridge: vmbr0
+lxc_if_name: eth0
+lxc_ip: 192.168.100.88/24
+lxc_gw: 192.168.100.1
+nets: "name={{lxc_if_name}},bridge={{lxc_bridge}},firewall=0,ip={{lxc_ip}},gw={{lxc_gw}}"

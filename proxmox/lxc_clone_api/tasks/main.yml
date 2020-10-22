@@ -1,0 +1,4 @@
+---
+# tasks file for prox_api
+- import_tasks: prox_logging.yml
+- import_tasks: create_lxc_instance.yml

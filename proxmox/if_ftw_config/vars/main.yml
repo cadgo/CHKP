@@ -1,6 +1,6 @@
 ---
 # vars file for lab_network_setup
-defaul_ip: 192.168.100.31
+defaul_ip: 192.168.100.30
 default_gw: 192.168.100.1
 #eth0_real_ip: 192.168.100.41
 eth0_real_mask: 24

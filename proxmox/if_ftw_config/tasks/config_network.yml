@@ -1,7 +1,7 @@
 ---
   - name: Waiting to turn on
     pause:
-      minutes: 4
+      minutes: 8
 
   - name: Waiting to become online
     wait_for:
@@ -22,4 +22,4 @@
       clish -c 'set interface {{ item.key }} ipv4-address {{ item.value.ip_address }} mask-length {{ item.value.mask }}' -s
       clish -c 'set interface {{ item.key }} state on' -s
     with_dict: "{{ additional_ifs }}"
-    when: install_gw == True
+    when: role_lab == "firewall"

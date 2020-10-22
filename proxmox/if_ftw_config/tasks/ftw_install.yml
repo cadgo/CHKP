@@ -1,13 +1,13 @@
 ---
-    - name: Running FTW as {{ role_lab }}
+    - name: Running FTW as firewall
       raw: config_system -s "hostname={{ vmname }}&ftw_sic_key={{SIC }}&timezone=\'Etc/GMT-6\'&install_security_managment=false&install_mgmt_primary=false&install_security_gw=true&gateway_daip=false&install_ppak=true&gateway_cluster_member=false&download_info=true&iface=eth0&ipstat_v4=manually&ipaddr_v4={{ eth0_real_ip }}&masklen_v4={{ eth0_real_mask }}&ipstat_v6=off"
       ignore_unreachable: true
-      when: install_gw == True
+      when: role_lab == "firewall"
 
-    - name: Running FTW as {{ role_lab }}
+    - name: Running FTW as SMS
       raw: config_system -s "hostname={{ vmname }}&ftw_sic_key={{SIC }}&timezone=\'Etc/GMT-6\'&install_security_managment=true&install_mgmt_primary=true&install_security_gw=false&mgmt_admin_radio=gaia_admin&mgmt_gui_clients_radio=any&download_info=true&iface=eth0&ipstat_v4=manually&ipaddr_v4={{ eth0_real_ip }}&masklen_v4={{ eth0_real_mask }}&ipstat_v6=off"
       ignore_unreachable: true
-      when: install_gw != True
+      when: role_lab == "SMS"
 
     - name: Check Installation to Complete
       wait_for:
