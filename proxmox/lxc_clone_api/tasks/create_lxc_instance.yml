@@ -2,7 +2,6 @@
   - name: "Encoding Network LXC Configuration"
     set_fact:
       net: "net0={{nets|urlencode|replace('/','%2F')}}"
-      #net: net0=name%3Deth0%2Cbridge%3Dvmbr0%2Cfirewall%3D0%2Cip%3D192.168.100.88%2F24%2Cgw%3D192.168.100.1
 
   - debug: msg="{{net}}"
 
@@ -12,8 +11,7 @@
       method: POST
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
+        Authorization: "{{apikey}}"
     register: instance_out
 
   - name: obtaining UPID
@@ -26,8 +24,7 @@
       status_code: 200
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
+        Authorization: "{{apikey}}"
     register: Status
     until: Status.json.data.status == "stopped"
     retries: 10
@@ -40,6 +37,4 @@
       status_code: 200
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
-
+        Authorization: "{{apikey}}"

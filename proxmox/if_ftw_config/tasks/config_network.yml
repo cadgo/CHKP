@@ -1,7 +1,7 @@
 ---
   - name: Waiting to turn on
     pause:
-      minutes: 8
+      minutes: 5
 
   - name: Waiting to become online
     wait_for:

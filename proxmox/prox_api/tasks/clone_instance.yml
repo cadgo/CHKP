@@ -5,8 +5,7 @@
       method: POST
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
+        Authorization: "{{apikey}}"
     register: instance_out
 
   - name: obtaining UPID
@@ -21,12 +20,11 @@
       status_code: 200
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
+        Authorization: "{{apikey}}"
     register: Status
     until: Status.json.data.status == "stopped"
-    retries: 50
-    delay: 30
+    retries: 30
+    delay: 18
     
   - name: Starting instance "{{vmname}}"
     uri:
@@ -35,6 +33,4 @@
       status_code: 200
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
-
+        Authorization: "{{apikey}}"

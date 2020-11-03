@@ -1,15 +1,13 @@
 ---
 - hosts: localhost
   gather_facts: False
-  vars_files: 
-    - vault_password.yml
   tasks:
     - name: proxmox clone firewall
       include_role: 
         name: prox_api
       vars:
         api_password: "{{ password }}"
-        storage: VM
+        storage: local-lvm
         vmname: lab1firewall
 
 - hosts: chkp_prox
@@ -21,19 +19,17 @@
       vars:
         vmname: Lab1firewall
         role_lab: firewall
-        eth0_real_ip: 192.168.100.50
+        eth0_real_ip: 192.168.30.50
 
 - hosts: localhost
   gather_facts: False
-  vars_files: 
-    - vault_password.yml
   tasks:
     - name: proxmox clone SMS
       include_role: 
         name: prox_api
       vars:
         api_password: "{{ password }}"
-        storage: cosas
+        storage: local-lvm
         vmname: lab1sms
 
 - hosts: chkp_prox
@@ -43,14 +39,12 @@
       include_role: 
         name: if_ftw_config
       vars:
-        vmname: Lab1sms
+        vmname: lab1sms
         role_lab: SMS
-        eth0_real_ip: 192.168.100.51
+        eth0_real_ip: 192.168.30.51
 
 - hosts: localhost
   gather_facts: False
-  vars_files: 
-    - vault_password.yml
   tasks:
     - name: Creating Container
       include_role: 
@@ -60,4 +54,5 @@
         lxc_ip: 10.1.1.10/24
         lxc_gw: 10.1.1.1
         lxc_bridge: vmbr1
-        hostname: PC1Lab
+        hostname: pc1lab
+        storage: local-lvm

@@ -1,17 +1,4 @@
 ---
-  - name: Proxmox Logging
-    uri:
-      url: https://{{ prox_ip }}:{{ prox_port }}/api2/json/access/ticket?username={{ user }}&password={{password}}
-      method: POST
-      status_code: 200
-      validate_certs: False
-    register: logging_info
-
-  - name: obtaining tocken and ticket
-    set_fact:
-      token: "{{logging_info.json.data.CSRFPreventionToken}}"
-      ticket: "{{logging_info.json.data.ticket}}"
-
   - name: Next ID
     uri:
       url: https://{{ prox_ip }}:{{ prox_port }}/api2/json/cluster/nextid
@@ -19,8 +6,7 @@
       status_code: 200
       validate_certs: False
       headers:
-        CSRFPreventionToken: "{{token}}"
-        Cookie: "PVEAuthCookie={{ticket}}"
+        Authorization: "{{apikey}}"
     register: nextid
 
   - name: Set Next ID

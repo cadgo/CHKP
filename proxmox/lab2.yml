@@ -1,3 +1,58 @@
 ---
-- import_playbook: prox_r80_create.yml
-- import_playbook: prox_if_config.yml
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: proxmox clone firewall
+      include_role: 
+        name: prox_api
+      vars:
+        api_password: "{{ password }}"
+        storage: local-lvm
+        vmname: lab2firewall
+
+- hosts: chkp_prox
+  gather_facts: False
+  tasks:
+    - name: Run FTW for firewall
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: Lab2firewall
+        role_lab: firewall
+        eth0_real_ip: 192.168.30.50
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: proxmox clone SMS
+      include_role: 
+        name: prox_api
+      vars:
+        api_password: "{{ password }}"
+        storage: local-lvm
+        vmname: lab1sms
+
+- hosts: chkp_prox
+  gather_facts: False
+  tasks:
+    - name: Run FTW for SMS
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: lab2sms
+        role_lab: SMS
+        eth0_real_ip: 192.168.30.51
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Creating Container
+      include_role: 
+        name: lxc_clone_api
+      vars:
+        api_password: "{{ password }}"
+        lxc_ip: 10.1.1.10/24
+        lxc_gw: 10.1.1.1
+        lxc_bridge: vmbr1
+        hostname: pc1lab
+        storage: local-lvm

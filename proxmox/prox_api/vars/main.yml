@@ -1,10 +1,10 @@
 ---
 # vars file for prox_api
-prox_ip: 192.168.100.10
+prox_ip: 192.168.30.20
 prox_port: 8006
-node: proxmoxer
-clone_id: 124
+node: pve
+clone_id: 102
 vmname: R8040Demo
 format: qcow2
-user: root@pam
-storage: VM
+storage: local-lvm
+apikey: PVEAPIToken=cdiaz@pve!ansible=5d3344ee-eca2-4571-9886-03191e806235
