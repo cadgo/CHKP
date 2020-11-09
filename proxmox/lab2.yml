@@ -2,24 +2,61 @@
 - hosts: localhost
   gather_facts: False
   tasks:
-    - name: proxmox clone firewall
+    - name: proxmox clone firewall 1
       include_role: 
         name: prox_api
       vars:
         api_password: "{{ password }}"
         storage: local-lvm
-        vmname: lab2firewall
+        vmname: lab2firewall1
 
 - hosts: chkp_prox
   gather_facts: False
   tasks:
-    - name: Run FTW for firewall
+    - name: Run FTW for firewall 1
       include_role: 
         name: if_ftw_config
       vars:
-        vmname: Lab2firewall
+        vmname: Lab2firewall1
         role_lab: firewall
         eth0_real_ip: 192.168.30.50
+        additional_ifs:
+          eth1:
+            ip_address: 201.168.177.1
+            mask: 24
+          eth2:
+            ip_address: 10.1.1.1
+            mask: 24
+
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: proxmox clone firewall 2
+      include_role: 
+        name: prox_api
+      vars:
+        api_password: "{{ password }}"
+        storage: local-lvm
+        vmname: lab2firewall2
+
+- hosts: chkp_prox
+  gather_facts: False
+  tasks:
+    - name: Run FTW for firewall 2
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: Lab2firewall2
+        role_lab: firewall
+        eth0_real_ip: 192.168.30.51
+        additional_ifs:
+          eth1:
+            ip_address: 201.168.177.2
+            mask: 24
+          eth2:
+            ip_address: 172.16.8.1
+            mask: 24
 
 - hosts: localhost
   gather_facts: False
@@ -28,7 +65,6 @@
       include_role: 
         name: prox_api
       vars:
-        api_password: "{{ password }}"
         storage: local-lvm
         vmname: lab1sms
 
@@ -41,7 +77,7 @@
       vars:
         vmname: lab2sms
         role_lab: SMS
-        eth0_real_ip: 192.168.30.51
+        eth0_real_ip: 192.168.30.52
 
 - hosts: localhost
   gather_facts: False
@@ -53,6 +89,19 @@
         api_password: "{{ password }}"
         lxc_ip: 10.1.1.10/24
         lxc_gw: 10.1.1.1
-        lxc_bridge: vmbr1
-        hostname: pc1lab
+        lxc_bridge: vmbr2
+        hostname: pc1lab2
         storage: local-lvm
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Creating Container
+      include_role: 
+        name: lxc_clone_api
+      vars:
+        api_password: "{{ password }}"
+        lxc_ip: 172.16.8.10/24
+        lxc_gw: 172.16.8.1
+        lxc_bridge: vmbr2
+        hostname: pc2lab2

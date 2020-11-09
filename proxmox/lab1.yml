@@ -6,7 +6,6 @@
       include_role: 
         name: prox_api
       vars:
-        api_password: "{{ password }}"
         storage: local-lvm
         vmname: lab1firewall
 
