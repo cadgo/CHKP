@@ -1,0 +1,9 @@
+---
+  - name: "delete instance {{ lookup('file', fileqm)}}"
+    uri: 
+      url: "https://{{prox_ip}}:{{prox_port}}/api2/json/nodes/{{node}}/lxc/{{item}}"
+      method: DELETE
+      validate_certs: False
+      headers:
+        Authorization: "{{apikey}}"
+    loop: "{{ lookup('file', filelxc).splitlines()}}"

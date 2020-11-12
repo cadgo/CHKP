@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files:
+    - "{{lookup('env', 'PWD')}}/prox_api/vars/main.yml"
+    - "{{lookup('env', 'PWD')}}/lxc_clone_api/vars/main.yml"
+  tasks:
+    - name: delete lab vms
+      include: "{{lookup('env', 'PWD')}}/prox_api/tasks/delete_instance.yml"
+      vars:
+        fileqm: "{{lookup('env', 'PWD')}}/labdeletion_qemu.txt" 
+
+    - name: delete lab lxc
+      include: "{{lookup('env', 'PWD')}}/lxc_clone_api/tasks/delete_instance.yml"
+      vars:
+        filelxc: "{{lookup('env', 'PWD')}}/labdeletion_lxc.txt" 

@@ -1,0 +1,6 @@
+---
+  - debug: msg="creating ids to be delete"
+  
+    #- debug: msg="{{ lookup('env', 'PWD')}}"
+ 
+  - local_action: lineinfile path="{{lookup('env', 'PWD')}}/labdeletion_qemu.txt" line="{{new_id}}" state="present" create="yes"

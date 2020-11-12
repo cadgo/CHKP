@@ -1,4 +1,5 @@
 ---
 # tasks file for prox_api
 - import_tasks: prox_logging.yml
+- import_tasks: copy_vm_ids.yml
 - import_tasks: clone_instance.yml
