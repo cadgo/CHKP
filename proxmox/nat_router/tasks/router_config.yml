@@ -1,0 +1,34 @@
+---
+  - name: "Configure hostname"
+    vyos.vyos.vyos_config:
+      lines:
+      - set system host-name {{ vyos_hostname }}
+
+  - name: Configure interfaces
+    vyos.vyos.vyos_config:
+      lines:
+      - set interfaces ethernet {{item.key}} address {{item.value.ip_address}}
+    loop: "{{interfaces | dict2items}}"
+  
+  - name: "Config default gw {{def_gw}}" 
+    vyos.vyos.vyos_config:
+      lines:
+      - set protocols static route 0.0.0.0/0 next-hop {{def_gw}}
+ 
+  - set_fact:
+      address_trans: "{{interfaces[iface_trans]['ip_address'] | ipaddr('network')}}/{{interfaces[iface_trans]['ip_address']| ipaddr('prefix')}}"
+      #address_trans: "{{interfaces.eth1.ip_address | ipaddr('network')}}/{{interfaces.eth1.ip_address| ipaddr('prefix')}}"
+
+  - name: Setting Outbound NAT
+    vyos.vyos.vyos_config:
+      lines:
+      - set nat source rule 10 outbound-interface eth0
+      - set nat source rule 10 source address "{{address_trans}}"
+      - set nat source rule 10 translation address 'masquerade'
+
+  - name: Delete eth0 for template
+    vyos.vyos.vyos_config:
+      lines:
+      - delete interfaces ethernet eth0 address 192.168.30.33/24 
+    timeout: 5
+    ignore_errors: true

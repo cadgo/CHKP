@@ -1,0 +1,4 @@
+---
+# tasks file for nat_gw
+- import_tasks: wait_turnon.yml
+- import_tasks: router_config.yml 

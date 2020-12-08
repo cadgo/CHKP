@@ -1,0 +1,125 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: proxmox clone firewall
+      include_role: 
+        name: prox_api
+      vars:
+        storage: local-lvm
+        vmname: labpbrfw
+
+- hosts: chkp_prox
+  gather_facts: False
+  tasks:
+    - name: Run FTW for firewall
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: pbrfw
+        role_lab: firewall
+        eth0_real_ip: 192.168.30.50
+        default_gw: 172.13.24.1
+        addition_ifs:
+          eth1:
+            ip_address: 172.13.24.10
+            mask: 24
+          eth2:
+            ip_address: 172.14.24.10
+            mask: 24
+          eth3:
+            ip_address: 172.14.24.10
+            mask: 24
+          eth4:
+            ip_address: 10.1.1.1
+            mask: 24
+
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: proxmox clone SMS
+      include_role: 
+        name: prox_api
+      vars:
+        api_password: "{{ password }}"
+        storage: local-lvm
+        vmname: labpbrsms
+
+- hosts: chkp_prox
+  gather_facts: False
+  tasks:
+    - name: Run FTW for SMS
+      include_role: 
+        name: if_ftw_config
+      vars:
+        vmname: labpbrsms
+        role_lab: SMS
+        eth0_real_ip: 192.168.30.51
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Creating Container
+      include_role: 
+        name: lxc_clone_api
+      vars:
+        api_password: "{{ password }}"
+        lxc_ip: 10.1.1.10/24
+        lxc_gw: 10.1.1.1
+        lxc_bridge: vmbr4
+        hostname: pbrserver1
+        storage: local-lvm
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Cloning R1
+      include_role: 
+        name: prox_api
+      vars:
+        storage: local-lvm
+        vmname: router1pbr
+        clone_id: 108
+
+- hosts: routers
+  gather_facts: False
+  tasks:
+    - name: Configuring R1
+      include_role:
+        name: nat_router
+      vars:
+        vyos_hostname: "router1"
+        iface_trans: "eth1"
+        interfaces:
+          eth0:
+            ip_address: 192.168.30.52/24
+          eth1:
+            ip_address: 172.13.24.1/24
+
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Cloning R2
+      include_role: 
+        name: prox_api
+      vars:
+        storage: local-lvm
+        vmname: router2pbr
+        clone_id: 108
+
+- hosts: routers
+  gather_facts: False
+  tasks:
+    - name: Configuring R2
+      include_role:
+        name: nat_router
+      vars:
+        vyos_hostname: "router2"
+        iface_trans: "eth2"
+        interfaces:
+          eth0:
+            ip_address: 192.168.30.53/24
+          eth2:
+            ip_address: 172.14.24.1/24

@@ -1,0 +1,5 @@
+
+---
+  - name: Waiting to turn on
+    pause:
+      minutes: 3
