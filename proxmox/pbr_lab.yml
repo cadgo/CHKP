@@ -20,7 +20,7 @@
         role_lab: firewall
         eth0_real_ip: 192.168.30.50
         default_gw: 172.13.24.1
-        addition_ifs:
+        additional_ifs:
           eth1:
             ip_address: 172.13.24.10
             mask: 24
@@ -28,7 +28,7 @@
             ip_address: 172.14.24.10
             mask: 24
           eth3:
-            ip_address: 172.14.24.10
+            ip_address: 172.15.24.10
             mask: 24
           eth4:
             ip_address: 10.1.1.1
@@ -123,3 +123,30 @@
             ip_address: 192.168.30.53/24
           eth2:
             ip_address: 172.14.24.1/24
+
+
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Cloning R3
+      include_role: 
+        name: prox_api
+      vars:
+        storage: local-lvm
+        vmname: router3pbr
+        clone_id: 108
+
+- hosts: routers
+  gather_facts: False
+  tasks:
+    - name: Configuring R3
+      include_role:
+        name: nat_router
+      vars:
+        vyos_hostname: "router3"
+        iface_trans: "eth3"
+        interfaces:
+          eth0:
+            ip_address: 192.168.30.54/24
+          eth3:
+            ip_address: 172.15.24.1/24

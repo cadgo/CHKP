@@ -7,7 +7,7 @@
         name: prox_api
       vars:
         storage: local-lvm
-        vmname: lab1firewall
+        vmname: lab1vpnhide
 
 - hosts: chkp_prox
   gather_facts: False
@@ -16,7 +16,7 @@
       include_role: 
         name: if_ftw_config
       vars:
-        vmname: Lab1firewall
+        vmname: lab1vpnhide
         role_lab: firewall
         eth0_real_ip: 192.168.30.50
 
@@ -29,7 +29,7 @@
       vars:
         api_password: "{{ password }}"
         storage: local-lvm
-        vmname: lab1sms
+        vmname: lab1smsvpnhide
 
 - hosts: chkp_prox
   gather_facts: False
@@ -38,7 +38,7 @@
       include_role: 
         name: if_ftw_config
       vars:
-        vmname: lab1sms
+        vmname: lab1smsvpnhide
         role_lab: SMS
         eth0_real_ip: 192.168.30.51
 
@@ -53,5 +53,5 @@
         lxc_ip: 10.1.1.10/24
         lxc_gw: 10.1.1.1
         lxc_bridge: vmbr1
-        hostname: pc1lab
+        hostname: pc1labvpnhide
         storage: local-lvm

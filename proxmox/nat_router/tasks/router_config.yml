@@ -26,6 +26,12 @@
       - set nat source rule 10 source address "{{address_trans}}"
       - set nat source rule 10 translation address 'masquerade'
 
+
+  - name: Saving configuration
+    vyos.vyos.vyos_config:
+      lines:
+      - save
+
   - name: Delete eth0 for template
     vyos.vyos.vyos_config:
       lines:
