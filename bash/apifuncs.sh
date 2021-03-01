@@ -81,4 +81,3 @@ function dump_total_nets(){
                 return 1
         fi
 }
-
