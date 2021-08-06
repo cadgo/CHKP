@@ -4,26 +4,37 @@ class Chkp_config{
   [string]$URI
   [float]$Version = 1.6
   [string]$URL = $null
+  [IPAddress]$DomainIP = $null
   $Headers = @{'Content-type'='application/json'}
 
   [void]SetURL(){
     $this.URL = "https://"+$this.URI+'/web_api/v'+$this.Version+'/'
   }
 
-  Chkp_config([string]$uri, [int]$port, [float]$version){
+  Chkp_config([string]$uri, [IPAddress]$DomainIP, [int]$port, [float]$version){
     $this.URI = $uri
     $this.port = $port
     $this.Version = $version
+    $this.DomainIP = $DomainIP
     $this.SetURL()
   }
+  Chkp_config([string]$uri, [IPAddress]$DomainIP){
+    $this.URI = $uri
+    $this.port = 443
+    $this.Version = 1.6
+    $this.DomainIP = $DomainIP
+    $this.SetURL()
+    }
   Chkp_config([string]$uri, [int]$port){
     $this.URI = $uri
     $this.port = $port
+    $this.DomainIP = $null
     $this.Version = 1.6
     $this.SetURL()
   }
   Chkp_config([string]$uri){
     $this.URI = $uri
+    $this.DomainIP = $null
     $this.port= 443
     $this.Version= 1.6
     $this.SetURL()
@@ -32,13 +43,6 @@ class Chkp_config{
 function Get-CheckPointSid{
   [CmdletBinding()]
   param(
-    [parameter(
-    	Mandatory = $false,
-	HelpMessage='Tne Domain IP'
-    )]
-    [IPAddress]
-    $DomainIP,
-
     [Parameter(
 	Mandatory = $true,
 	HelpMessage = "User login"
@@ -58,8 +62,8 @@ function Get-CheckPointSid{
     throw "There is not configuration object"
   }
   $CurrentURL = $cconfig.URL+$command
-  $data = @{"user"=$UserName;
-            "password"=$null;
+  $data = @{user=$UserName;
+            password=$null;
           }
   if (-not ($Pass)){
 	  $Pass = Read-Host -MaskInput "Please enter your SMS Password" 
@@ -67,8 +71,24 @@ function Get-CheckPointSid{
   }else{
     $data['password'] = $Pass
   }
-  if ($DomainIP){$data=$data+@{"domain"=$DomainIP}}
-  #Write-Host $add_command
-  $response = Invoke-RestMethod -SkipCertificateCheck -Uri $CurrentURL -Method Post -Body ($data|ConvertTo-Json) -ContentType "application/json"
-  $response 
+  if ($cconfig.DomainIP){$data=$data+@{domain=$cconfig.DomainIP.IPAddressToString}}
+  $jsondatasid=Invoke-RestMethod -SkipCertificateCheck -Uri $CurrentURL -Method Post -Body ($data|ConvertTo-Json) -ContentType "application/json" 
+  #$response = Convertfrom-json -InputObject $jsondatasid
+  return $jsondatasid.sid
+}
+
+function Get-ChkpAccessRuleBase{
+  [CmdletBinding()]
+  param(
+  [Parameter(
+  Mandatory = $true,
+  HelpMessage = "SID Session ID")]
+  [String]$SID,
+
+  [Parameter(
+  Mandtory = $true,
+  HelpMessage = "Rule Name")]
+  [String]$RuleName
+  )
+  write-host "hola mundo"
 }
