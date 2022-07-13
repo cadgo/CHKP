@@ -5,6 +5,10 @@
 # This script is a colaboration between PS and SE  #
 #                 By                               #
 #   Cadgo          &     RDPS                      #
+#        /v1 nat per host and net splited          #
+#                 /v2 adding run command           #
+#                 /v3 merging host and net         #
+#                 /v4 adding ranges                #
 ####################################################
 echo 'this script is a colaboratio between PS and SE'
 echo 'By cadgo and RDPS'
@@ -110,8 +114,7 @@ done
 	loggerf "publishing session"
 	mgmt_cli publish $addcli -s sid.txt
 	
-rm host*
-rm host.log
+
 loggerf "Removiendo archivos"
 #remover archivos rutina
 
@@ -173,8 +176,60 @@ done
 	loggerf "publishing session"
 	mgmt_cli publish $addcli -s sid.txt
 	
-rm host.log
-rn betfiles*
-rm sid.txt
+
+###################changing ranges
+
+
+newrange="netrange"
+rangedb="range_chkp.db"
+#dumprannge
+#totalrange=`cat range.file | jq '.total'`
+#cat hostfile10 | jq '.objects[].name' | wc -l
+loggerf "dumping range for looping"
+dump_total_range sid.txt $domip
+if [ $? -eq 0 ]; then
+	loggerf "There are not range to dump bye bye"
+	exit 0
+fi
+for yy in `ls $newrange*`; do
+	loggerf "creating database $rangedb file for file $yy"
+	totalrange=$(cat $yy | jq '.objects[].name' | wc -l)
+	loggerf "File $yy has $totalrange range to be iterated"
+	for (( x=0; x<$totalrange; x++ ))
+	do
+         cat $yy | jq ".objects[$x].name" >> $rangedb
+	done
+	for xx in $( cat $rangedb )
+	do
+         bb=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."install-on"' | sed -e 's/^"//' -e 's/"$//'`
+         nattype=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."method"' | sed -e 's/^"//' -e 's/"$//'`
+ 	if [[ "$bb" = "$oldfw" ]]; then
+             if [[ "$nattype" = "static" ]]; then
+             	ipv4=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."ipv4-address"' | sed -e 's/^"//' -e 's/"$//'`
+                auto=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."auto-rule"' | sed -e 's/^"//' -e 's/"$//'`
+                echo "Chaging Fw Nat" $xx " en modo static" >> $logfile
+ 		loggerf "running mgmt_cli set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.ip-address $ipv4 nat-settings.method "static" nat-settings.install-on $nfw $addcli -s sid.txt"
+                run_command "mgmt_cli -d $domip set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.ip-address $ipv4 nat-settings.method "static" nat-settings.install-on $nfw $addcli -s sid.txt"
+            else
+                ipv4=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."ipv4-address"' | sed -e 's/^"//' -e 's/"$//'`
+                auto=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."auto-rule"' | sed -e 's/^"//' -e 's/"$//'`
+                hb=`cat $yy | jq ".objects[] | select(.name==$xx)" | jq '."nat-settings"."hide-behind"' | sed -e 's/^"//' -e 's/"$//'`
+                echo "Changing Fw NAt" $xx " en modo hide" >> $logfile
+                if [[ "$hb" = "gateway" ]]; then
+                	loggerf "mgmt_cli set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.hide-behind "gateway" nat-settings.method "hide" nat-settings.install-on $nfw $addcli -s sid.txt"
+                	run_command "mgmt_cli set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.hide-behind "gateway" nat-settings.method "hide" nat-settings.install-on $nfw $addcli -s sid.txt"
+                else
+                	loggerf "running mgmt_cli set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.ip-address $ipv4 nat-settings.method "hide" nat-settings.install-on $nfw $addcli -s sid.txt"
+ 			run_command "mgmt_cli set address-ranges name $xx nat-settings.auto-rule $auto nat-settings.ip-address $ipv4 nat-settings.method "hide" nat-settings.install-on $nfw $addcli -s sid.txt"
+             	fi
+             fi
+ 	fi
+	done
+	loggerf "removing $rangedb"
+	rm $rangedb
+done
+
+	loggerf "publishing session"
+	mgmt_cli publish $addcli -s sid.txt
 
 mgmt_cli logout $addcli -s sid.txt
