@@ -48,9 +48,25 @@ resource "aws_subnet" "PublicB" {
   tags = merge(var.default_tags, {Name = "PublicB"},)
 }
 
-resource "aws_subnet" "PrivateA" {
+resource "aws_subnet" "TGWA" {
   vpc_id = aws_vpc.protected1.id
   cidr_block = "172.32.4.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = merge(var.default_tags, {Name = "TGWA"},)
+}
+
+resource "aws_subnet" "TGWB" {
+  vpc_id = aws_vpc.protected1.id
+  cidr_block = "172.32.5.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = merge(var.default_tags, {Name = "TGWB"},)
+}
+
+resource "aws_subnet" "PrivateA" {
+  vpc_id = aws_vpc.protected1.id
+  cidr_block = "172.32.6.0/24"
   availability_zone = "us-east-1a"
 
   tags = merge(var.default_tags, {Name = "PrivateA"},)
@@ -58,7 +74,7 @@ resource "aws_subnet" "PrivateA" {
 
 resource "aws_subnet" "PrivateB" {
   vpc_id = aws_vpc.protected1.id
-  cidr_block = "172.32.5.0/24"
+  cidr_block = "172.32.7.0/24"
   availability_zone = "us-east-1b"
 
   tags = merge(var.default_tags, {Name = "PrivateB"},)
@@ -101,22 +117,38 @@ resource "aws_subnet" "PublicP2B" {
   tags = merge(var.default_tags, {Name = "PublicP2B"},)
 }
 
-resource "aws_subnet" "PrivateP2A" {
+resource "aws_subnet" "TGWP2A" {
   vpc_id = aws_vpc.protected2.id
   cidr_block = "172.44.4.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = merge(var.default_tags, {Name = "TGWP2A"},)
+}
+
+resource "aws_subnet" "TGWP2B" {
+  vpc_id = aws_vpc.protected2.id
+  cidr_block = "172.44.5.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = merge(var.default_tags, {Name = "TGWP2B"},)
+}
+
+resource "aws_subnet" "Private2A" {
+  vpc_id = aws_vpc.protected2.id
+  cidr_block = "172.44.6.0/24"
   availability_zone = "us-east-1a"
 
   tags = merge(var.default_tags, {Name = "Private2A"},)
 }
 
-resource "aws_subnet" "PrivateP2B" {
+
+resource "aws_subnet" "Private2B" {
   vpc_id = aws_vpc.protected2.id
-  cidr_block = "172.44.5.0/24"
+  cidr_block = "172.44.7.0/24"
   availability_zone = "us-east-1b"
 
   tags = merge(var.default_tags, {Name = "Private2B"},)
 }
-
 #Internet GW
 resource "aws_internet_gateway" "pro1-igw"{
   vpc_id = aws_vpc.protected1.id
@@ -129,7 +161,7 @@ resource "aws_internet_gateway" "pro2-igw"{
 
   tags = merge(var.default_tags, {Name = "pro2-igw"},)
 }
-
+#Security Groups
 resource "aws_security_group" "Pord-1-ns-Instances"{
   name = "Allow SSH-Pro-1"
   vpc_id = aws_vpc.protected1.id
@@ -190,6 +222,16 @@ resource "aws_instance" "pro-1-insta-PubB"{
   tags = merge(var.default_tags, {Name = "pro-1-insta-PubB"},)
 }
 
+resource "aws_instance" "pro-1-insta-PrivA"{
+  ami = "ami-052efd3df9dad4825"
+  instance_type = "t2.micro"
+  key_name = "${var.key_lab}"
+  availability_zone = "us-east-1a"
+  subnet_id = aws_subnet.PrivateA.id
+  security_groups = [aws_security_group.Pord-1-ns-Instances.id]
+  tags = merge(var.default_tags, {Name = "pro-1-insta-PrivA"},)
+}
+
 resource "aws_instance" "pro-2-insta-Pub2A"{
   ami = "ami-052efd3df9dad4825"
   instance_type = "t2.micro"
@@ -210,4 +252,14 @@ resource "aws_instance" "pro-2-insta-Pub2B"{
   associate_public_ip_address = true
   security_groups = [aws_security_group.Pord-2-ns-Instances.id]
   tags = merge(var.default_tags, {Name = "pro-2-insta-Pub2B"},)
+}
+
+resource "aws_instance" "pro-2-insta-Priv2A"{
+  ami = "ami-052efd3df9dad4825"
+  instance_type = "t2.micro"
+  key_name = "${var.key_lab}"
+  availability_zone = "us-east-1a"
+  subnet_id = aws_subnet.Private2A.id
+  security_groups = [aws_security_group.Pord-2-ns-Instances.id]
+  tags = merge(var.default_tags, {Name = "pro-2-insta-Priv2A"},)
 }

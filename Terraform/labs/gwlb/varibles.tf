@@ -19,7 +19,7 @@ variable "aws_region"{
 
 variable "key_lab"{
   description = "Lab Key for access instances"
-  default = "lab1"
+  default = "lab"
 }
 
 variable "IPSource"{
