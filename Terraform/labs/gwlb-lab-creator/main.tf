@@ -1,12 +1,13 @@
+
 module "vpc1" {
   source = "terraform-aws-modules/vpc/aws"
 
    name = local.name_vpc1
    cidr = var.cidr_vpc1
 
-  azs             = ["${var.region}a","${var.region}b"]
+  azs             = var.list_region
   public_subnets = var.public_subnets_vpc1
-  private_subnets  = var.private_subnets_vpc1w
+  private_subnets  = var.private_subnets_vpc1
   intra_subnets = var.tgwconnection_subnets_vpc1
   
   manage_default_network_acl = var.network_acl
@@ -26,7 +27,7 @@ module "vpc2" {
    name = local.name_vpc2
    cidr = var.cidr_vpc2
 
-  azs             = ["${var.region}a","${var.region}b"]
+  azs             = var.list_region
   public_subnets = var.public_subnets_vpc2
   private_subnets  = var.private_subnets_vpc2
   intra_subnets = var.tgwconnection_subnets_vpc2
@@ -42,7 +43,3 @@ module "vpc2" {
   }
 }
 
-module "chkp-gwlb-lab"{
-  source = "../aws/tgw-gwlb-master"
-  depends_on = [module.vpc1, module.vpc2]
-}

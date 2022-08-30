@@ -1,3 +1,5 @@
+list_region= ["${var.region}a","${var.region}b"]
+
 name_vpc1 = "vpc_1"
 cidr_vpc1 = "192.168.0.0/16"
 
