@@ -14,6 +14,6 @@ tgwconnection_subnets_vpc2 = ["172.16.21.0/24", "172.16.22.0/24"]
 endpoint_subnets_vpc2 = ["172.16.31.0/24", "172.16.32.0/24"]
 vpc_acl_tag_vpc2 = "${var.name_vpc2}-vpc-acl-default"
 
-sec_vpcid = ""
-security_vpc_tgw_networks_ids = ["",""]
+sec_vpc_id = "vpc-04cf7f94b67855cf6"
+security_vpc_tgw_networks_ids = ["subnet-02d03761ecd156f91","subnet-010cd6838796c84a2"]
 
