@@ -3,6 +3,22 @@ variable "tgw-name"{
   description = "tgw lab name"
   default = "tgw1"
 }
+variable "deploy_instances"{
+  type = bool
+  description = "deploy instances or not"
+  default = true
+}
+variable "public_ami"{
+  type = string
+  description = "ami used for public subnets"
+  default = "ami-0d5a1db7ddd7dddde"
+}
+
+variable "private_ami"{
+  type = string
+  description = "ami used for private subnets"
+  default = "ami-052efd3df9dad4825"
+}
 variable "network_acl"{
   type = bool
   description = "aws vpc module network acl true or false"

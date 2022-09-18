@@ -2,11 +2,11 @@ module "ec2_instance_vpc1_pub" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
   
-  count = length(module.vpc1.public_subnets) 
+  count = var.deploy_instances ? length(module.vpc1.public_subnets) : 0 
 
   name = "vpc-1-pub-${count.index}"
 
-  ami                    = "ami-0d5a1db7ddd7dddde"
+  ami                    = var.public_ami
   instance_type          = "t2.micro"
   key_name               = "lab"
   monitoring             = true
@@ -24,11 +24,11 @@ module "ec2_instance_vpc1_priv" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
   
-  count = length(module.vpc1.private_subnets) 
+  count = var.deploy_instances ? length(module.vpc1.private_subnets) : 0 
 
   name = "vpc-1-priv-${count.index}"
 
-  ami                    = "ami-052efd3df9dad4825"
+  ami                    = var.private_ami
   instance_type          = "t2.micro"
   key_name               = "lab"
   monitoring             = true
@@ -46,11 +46,11 @@ module "ec2_instance_vpc2_pub" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
   
-  count = length(module.vpc2.public_subnets) 
+  count = var.deploy_instances ? length(module.vpc2.public_subnets) : 0
 
   name = "vpc-2-pub-${count.index}"
 
-  ami                    = "ami-0d5a1db7ddd7dddde"
+  ami                    = var.public_ami
   instance_type          = "t2.micro"
   key_name               = "lab"
   monitoring             = true
@@ -68,11 +68,11 @@ module "ec2_instance_vpc2_priv" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
   
-  count = length(module.vpc1.private_subnets) 
+  count = var.deploy_instances ? length(module.vpc1.private_subnets) : 0
 
   name = "vpc-2-priv-${count.index}"
 
-  ami                    = "ami-052efd3df9dad4825"
+  ami                    = var.private_ami
   instance_type          = "t2.micro"
   key_name               = "lab"
   monitoring             = true
