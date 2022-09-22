@@ -1,6 +1,6 @@
 list_region = ["us-east-1a", "us-east-1b"]
-cidr_vpc1 = "192.168.0.0/16"
 deploy_instances = false
+cidr_vpc1 = "192.168.0.0/16"
 public_subnets_vpc1 = ["192.168.1.0/24", "192.168.2.0/24"]
 private_subnets_vpc1 = ["192.168.11.0/24", "192.168.12.0/24"]
 tgwconnection_subnets_vpc1 = ["192.168.21.0/24", "192.168.22.0/24"]
