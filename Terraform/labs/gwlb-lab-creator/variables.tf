@@ -51,16 +51,6 @@ variable "cidr_vpc1" {
   description = "vpc_1 cidr"
 }
 
-variable "public_subnets_vpc1"{
-  type = list(string)
-  description = "vpc_1 public subnets"
-}
-
-variable "private_subnets_vpc1"{
-  type = list(string)
-  description = "vpc_1 private subnets"
-}
-
 variable "tgwconnection_subnets_vpc1"{
   type = list(string)
   description = "vpc_1 Subnets where the TGW Attachment lives used for routing private subnet to TGW and GWLB Fw"
@@ -74,16 +64,6 @@ variable "endpoint_subnets_vpc1"{
 variable "cidr_vpc2" {
   type = string
   description = "vpc_2 cidr"
-}
-
-variable "public_subnets_vpc2"{
-  type = list(string)
-  description = "vpc_2 public subnets"
-}
-
-variable "private_subnets_vpc2"{
-  type = list(string)
-  description = "vpc_2 private subnets"
 }
 
 variable "tgwconnection_subnets_vpc2"{
@@ -104,4 +84,10 @@ variable "security_vpc_tgw_networks_ids"{
 variable "sec_vpc_id"{
   type = string
   description = "terraform id for security vpc created by checkpoint"
+}
+
+variable "endpoint_service_name"{
+  type = string
+  description = "service name that comes from service created by the CheckPoint GLWB deployment"
+  default = "gwlb-endpoint-service-gwlb1-cdz"
 }
