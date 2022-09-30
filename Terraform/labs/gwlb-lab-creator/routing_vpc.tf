@@ -33,3 +33,22 @@ resource "aws_route_table_association" "vpc1_rt_assoc"{
   gateway_id = module.vpc1.igw_id
   route_table_id = aws_route_table.edge-vpc1-pub-rt.id
 }
+
+resource "aws_route_table" "edge-vpc2-pub-rt"{
+//  count = length([cidrsubnet(var.cidr_vpc2,8,10), cidrsubnet(var.cidr_vpc2,8,20)])
+  vpc_id = module.vpc2.vpc_id
+  route{
+  cidr_block = cidrsubnet(var.cidr_vpc2,8,10)
+  vpc_endpoint_id = aws_vpc_endpoint.endpoint_service_vpc2[0].id
+  }
+  route{
+  cidr_block = cidrsubnet(var.cidr_vpc2,8,20)
+  vpc_endpoint_id = aws_vpc_endpoint.endpoint_service_vpc2[1].id
+  }
+  tags = {Name = "rt-vpc2-pub-endpoint"}
+}
+
+resource "aws_route_table_association" "vpc2_rt_assoc"{
+  gateway_id = module.vpc2.igw_id
+  route_table_id = aws_route_table.edge-vpc2-pub-rt.id
+}
