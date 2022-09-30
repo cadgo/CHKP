@@ -12,4 +12,4 @@ vpc_acl_tag_vpc2 = "${var.name_vpc2}-vpc-acl-default"
 
 sec_vpc_id = "vpc-02302bf9339d5bd8e"
 security_vpc_tgw_networks_ids = ["subnet-0a189cec1783ab507","subnet-00007bd9326e13170"]
-endpoint_service_name = "gwlb-endpoint-service-gwlb1-cdz"
+endpoint_service_name = "com.amazonaws.vpce.us-east-1.vpce-svc-0f4a7add29e6526d3"
