@@ -14,10 +14,11 @@ module "ec2_instance_vpc1_pub" {
   subnet_id              = element(module.vpc1.public_subnets,count.index)
   associate_public_ip_address = true
 
-  tags = {
-   Terraform   = "true"
-   Environment = "dev"
-  }
+  tags = merge(var.lab_tags,{
+    Service = "HTTP"
+    Version = "Bitnami"    
+    VPC_KIND = "Public"
+  })
 }
 
 module "ec2_instance_vpc1_priv" {
@@ -35,11 +36,12 @@ module "ec2_instance_vpc1_priv" {
   vpc_security_group_ids = [module.vpc_1_web.security_group_id,module.vpc_1_ssh.security_group_id]
   subnet_id              = element(module.vpc1.private_subnets,count.index)
   associate_public_ip_address = false
-
-  tags = {
-   Terraform   = "true"
-   Environment = "dev"
-  }
+  
+  tags = merge(var.lab_tags,{
+    Service = "SSH"
+    Version = "Bitnami"    
+    VPC_KIND = "Private"
+  })
 }
 
 module "ec2_instance_vpc2_pub" {
@@ -58,10 +60,12 @@ module "ec2_instance_vpc2_pub" {
   subnet_id              = element(module.vpc2.public_subnets,count.index)
   associate_public_ip_address = true
 
-  tags = {
-   Terraform   = "true"
-   Environment = "dev"
-  }
+  tags = merge(var.lab_tags,{
+    Service = "HTTP"
+    Version = "Bitnami"    
+    VPC_KIND =  "Public"
+  })
+
 }
 
 module "ec2_instance_vpc2_priv" {
@@ -80,8 +84,9 @@ module "ec2_instance_vpc2_priv" {
   subnet_id              = element(module.vpc2.private_subnets,count.index)
   associate_public_ip_address = false
 
-  tags = {
-   Terraform   = "true"
-   Environment = "dev"
-  }
+  tags = merge(var.lab_tags,{
+    Service = "SSH"
+    Version = "Bitnami"    
+    VPC_KIND = "Private"
+  })
 }

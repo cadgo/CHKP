@@ -1,3 +1,11 @@
+variable "lab_tags"{
+  type = map
+  description = "Default Lab Tags"
+  default = {
+    Terraform = "true"
+    Owner = "cdz"
+  }
+}
 variable "tgw-name"{
   type = string
   description = "tgw lab name"
