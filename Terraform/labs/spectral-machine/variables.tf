@@ -13,5 +13,4 @@ variable "instances_number" {
 variable "instance_pass"{
   type = string
   description = "instance password"
-  default = "Cpwins1!"
 }

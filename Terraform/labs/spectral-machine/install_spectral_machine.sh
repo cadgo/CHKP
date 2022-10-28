@@ -1,7 +1,7 @@
 #!/bin/bash
 
 logfile="/var/tmp/install_spectral.log"
-SF="git xfce4 xrdp"
+SF="git xfce4 xrdp mousepad"
 
 echo "updating the system" > $logfile
 sudo apt update
@@ -31,3 +31,9 @@ git clone https://github.com/chkp-cdiaz/SpectralGoat.git
 
 echo "Clone PayloadAllTheThings" >> $logfile
 git clone https://github.com/chkp-cdiaz/PayloadsAllTheThings.git
+
+echo "Clone django-cdiaz" >> $logfile
+git clone https://github.com/chkp-cdiaz/django-chkp.git
+
+echo "Clone keystone" >> $logfile
+git clone https://github.com/chkp-cdiaz/keystone.git
