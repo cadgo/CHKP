@@ -12,7 +12,7 @@ function print_help(){
    printf "\n\\n
    \t EXPORT VARIABLES\n\
    \t export TOKEN <obtain this info for the master installation>\n\
-   \t export CA-CERT <obtain this info for the master installation>\n\n\
+   \t export CACERT <obtain this info for the master installation>\n\n\
 
    \t usage: $0 options\n\
    \t\t -k MASTER | WORKER\n\
@@ -65,6 +65,10 @@ function install_crio(){
   fi
 }
 
+function disable_apparmor(){
+  systemctl disable apparmor
+}
+
 function kubeadm_install(){
   curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
@@ -81,6 +85,7 @@ function swap_handler(){
 function common_steps(){
   inst_general_deps
   add_net_modules
+  disable_apparmor
   install_crio
   kubeadm_install
   swap_handler
@@ -95,12 +100,12 @@ function master_install(){
 }
 
 function worker_install(){
-  if [ -z $TOKEN ] || [ -z $CA-CERT ]; then
-    echo "one of the variables CA-CERT or TOKEN are not exported"
+  if [ -z $TOKEN ] || [ -z $CACERT ]; then
+    echo "one of the variables CACERT or TOKEN are not exported"
     print_help
   fi
   common_steps
-  kubeadm join $MASTERIP:6443 --token $TOKEN --discovery-token-ca-cert-hash $CA-CERT
+  kubeadm join $MASTERIP:6443 --token $TOKEN --discovery-token-ca-cert-hash $CACERT --v=5
 }
 
 if [[ "$USERID" != "0" ]]; then
@@ -115,6 +120,7 @@ while getopts "k:d:h" options; do
   case "${options}" in
     h)
       print_help
+      exit 0
     ;;
     k)
       if [[ "$OPTARG" == "MASTER" ]] || [[ "$OPTARG" == "WORKER" ]]; then 
@@ -156,3 +162,4 @@ elif [[ "$KIND" == "WORKER" ]]; then
 else
   print_help 
 fi
+echo "TOO MANY CHANGES ON THE SYSTEM PLS REBOOT IT!"
