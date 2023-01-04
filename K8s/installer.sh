@@ -14,7 +14,7 @@ function print_help(){
    \t\t -k MASTER | WORKER\n\
    \t\t -i worker ID Number 1 2 3, etc\n\
    \t\t -d Master IP address\n\
-   \t\t -h help menu"
+   \t\t -h help menu\n\n"
 }
 
 function inst_general_deps(){
@@ -83,6 +83,13 @@ function common_steps(){
   swap_handler
 }
 
+function master_install(){
+  common_steps
+
+  kubeadm init --pod-network-cidr=$CIDR --v=5
+  #Install Flannel on master
+}
+
 if [[ "$USERID" != "0" ]]; then
   echo "This Script needs to be execute as root"
   exit 1
@@ -122,6 +129,7 @@ while getopts "k:i:d:h" options; do
     ;;
   esac
 done
-echo "Kind $KIND"
-echo "ID $ID"
-common_steps
+
+if [[ "$KIND" == "MASTER" ]]; then
+  master_install
+fi
