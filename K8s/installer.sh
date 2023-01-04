@@ -2,17 +2,20 @@
 #generar el hostname con el ID
 #cambiar el hostname a WORKER ID
 
-KIND=""
+KIND="MASTER"
 ID=0
 MASTERIP=""
 USERID=$(id -u)
 CRIO_V=1.24
 CIDR="10.244.0.0/16"
 function print_help(){
-   printf "\n\
+   printf "\n\\n
+   \t EXPORT VARIABLES\n\
+   \t export TOKEN <obtain this info for the master installation>\n\
+   \t export CA-CERT <obtain this info for the master installation>\n\n\
+
    \t usage: $0 options\n\
    \t\t -k MASTER | WORKER\n\
-   \t\t -i worker ID Number 1 2 3, etc\n\
    \t\t -d Master IP address\n\
    \t\t -h help menu\n\n"
 }
@@ -88,6 +91,16 @@ function master_install(){
 
   kubeadm init --pod-network-cidr=$CIDR --v=5
   #Install Flannel on master
+  kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.20.2/Documentation/kube-flannel.yml
+}
+
+function worker_install(){
+  if [ -z $TOKEN ] || [ -z $CA-CERT ]; then
+    echo "one of the variables CA-CERT or TOKEN are not exported"
+    print_help
+  fi
+  common_steps
+  kubeadm join $MASTERIP:6443 --token $TOKEN --discovery-token-ca-cert-hash $CA-CERT
 }
 
 if [[ "$USERID" != "0" ]]; then
@@ -98,7 +111,7 @@ fi
 
 echo "INSTALLER SCRIPT FOR K8S LAB RUN IT WITH OPTIONS MASTER or WORKER"
 
-while getopts "k:i:d:h" options; do
+while getopts "k:d:h" options; do
   case "${options}" in
     h)
       print_help
@@ -106,19 +119,20 @@ while getopts "k:i:d:h" options; do
     k)
       if [[ "$OPTARG" == "MASTER" ]] || [[ "$OPTARG" == "WORKER" ]]; then 
         KIND=$OPTARG
+        echo "Kind $KIND"
       else
         echo "Option can't be recognized"
         print_help
       fi
     ;;
-    i)
-      if [[ "$KIND" == "MASTER" ]]; then
-        echo "Invalid ID number for a MASTER this option is not an option for it"
-        exit 1
-      else
-        ID=$OPTARG  
-      fi
-    ;;
+    #i)
+    #  if [[ "$KIND" == "MASTER" ]]; then
+    #    echo "Invalid ID number for a MASTER this option is not an option for it"
+    #    exit 1
+    #  else
+    #    ID=$OPTARG  
+    #  fi
+    #;;
     d)
       if [[ "$KIND" == "MASTER" ]]; then
         echo "This option is just for WORKER node"
@@ -132,4 +146,13 @@ done
 
 if [[ "$KIND" == "MASTER" ]]; then
   master_install
+elif [[ "$KIND" == "WORKER" ]]; then
+  if [ -n "$MASTERIP" ]; then
+    worker_install
+  else
+    echo "We need to define the variable master ip"
+    print_help
+  fi
+else
+  print_help 
 fi
