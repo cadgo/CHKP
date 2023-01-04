@@ -158,6 +158,7 @@ elif [[ "$KIND" == "WORKER" ]]; then
   else
     echo "We need to define the variable master ip"
     print_help
+    exit 1
   fi
 else
   print_help 
