@@ -260,3 +260,52 @@ rules:
           }
         pattern_type: iac
 
+- id: SCR_AWS_006
+  name: google project iam binding should not have roles owner 
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_binding$", kind)
+            regex.match("^roles\/owner$", resource.role)
+
+            result := {
+              "id": "SCR_AWS_006", 
+              "keypath": "resource.role",
+              "fix": sprintf("in %s[%s], is not allowed as %s", ["goole_iam_binding", "role", "role/owner"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+        pattern_type: iac
+
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_binding$", kind)
+            regex.match("^roles\/editor$", resource.role)
+
+            result := {
+              "id": "SCR_AWS_006", 
+              "keypath": "resource.role",
+              "fix": sprintf("in %s[%s], is not allowed as %s", ["goole_iam_binding", "role", "role/editor"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+        pattern_type: iac
