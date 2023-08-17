@@ -1,0 +1,311 @@
+# spectralops.io - example for custom rules
+# Read more about our detectors engine to learn more about our rules engine capabilities, tricks and tips in SpectralOps docs.
+
+rules:
+- id: ADFR001                               # Unique rule ID
+  name: Adafruit IO API Key                 # Verbal description of the finding
+  tags:
+  # - base                                  # 'base' is our default tag; it will be used in case there isn't any other configuration (see '../spectral.yaml' or use 'spectral local/scan --include-tags=tag1,tag2' for selective tags)
+  - adafruit                                # For running this rule you can run spectral with 'adafruit' tag or uncomment the 'base' tag
+  applies_to:
+  - ".*$"                                   # Scan any file name
+  applies_not_to:
+  - ".*\\.(storyboard|xib)$"                # Ignore some false positive file extensions.
+  severity: high                            # Valid values are 'informational', 'low', 'medium', 'high' and 'critical'.
+  pattern_group:
+    patterns:
+    - pattern: "aio_[[:alnum:]]{28,32}"     # Regex pattern of the finding/secret we wish to alert about.
+      pattern_type: multi                   # For each scanned file: single - stop after one finding; multi - find all.
+      test_token:                           # Our token model measures the probability of the finding to be a randomly generated token, and helps us avoid false positive (please read more in our documentation).
+      - on: 0                               # Pattern capturing group number (use 0 for a whole match).
+        score: 0.5                          # The minimum score for accepting the finding as a true positive.
+      test_regex_not:                       # 'test_regex_not' is used to ignore false positive you may find when you just use the secret pattern (please read more in our documentation).
+      - on: 0
+        pattern: "(?i)(example|test|xxxx|1234|abcd)"
+
+- id: PASSWD001
+  name: Password audit
+  tags:
+  # - audit
+  - user-rules
+  applies_to:
+  - ".*$"
+  severity: high
+  pattern_group:         #|--------------- group 0 ---------------|
+    patterns:            #                      |-- group 1 --|
+    - pattern:        "(?i)password\\s*=\\s*[\"]([^\"\r\n]{4,})[\"]"  
+      pattern_type: multi
+      test_tvar:                             # Ignore template variables (please read more in our documentation).
+      - on: 1                                # Pattern capturing group number (use 0 for a whole match).
+        is: false                            # Accept if the finding is not a template variable.
+
+# An example how to use the dictionary detector, add words to you want to detect in: .spectral/words.yaml
+- id: DICT001
+  name: Dictionary
+  description: Dictionary
+  applies_to:
+  - ".*"
+  tags:
+  - base
+  severity: informational
+  pattern_group:
+    aggregate: or
+    scope: text
+    patterns:
+    - pattern: words.yaml
+      pattern_type: dict
+
+#######################################################################################################
+# Examples for IaC (Infrastructure As Code) based on OPA (Open Policy Agent) Rego language
+
+# You can put the below Terraform content inside a file with name for example main.tf and scan it,
+# you will see how SCR_AWS_001 and SCR_AWS_002 detectors works on that input file.
+#######################################################################################################
+
+#################### FILE CONTENT ####################
+# provider "aws" {
+#   region = "us-west-1"
+# }
+# resource "aws_any_resource" "test_res_name" {
+#     tags = {
+#         team = "spectral"
+#     }
+# }
+#################### END FILE CONTENT ####################
+- id: SCR_AWS_001
+  name: Ensure AWS regions
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            allow_regions := ["us-east-2", "us-east-1"]
+            region := input[_].provider.aws.region
+            not contains(allow_regions, region)
+            allow_regions_string := concat(", ", allow_regions)
+
+            result := {
+              "id": "SCR_AWS_001", 
+              "keypath": "provider.aws.region",
+              "fix": sprintf("in `%s[%s]`, cdz allows only regions `%s`", ["provider", "aws", allow_regions_string]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+
+        pattern_type: iac
+- id: SCR_AWS_002
+  name: Ensure all aws resource defined required tags keys are exists  
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          required_tags := ["team", "environment"]
+
+          Policy[result] {
+            rule_id := "SCR_AWS_002"
+
+            resource := input[i].resource[kind][name]
+            regex.match("^aws_", kind) # any AWS resource
+            is_array(required_tags)
+            missing_tags := aggregate_list(required_tags) - aggregate(resource.tags)
+
+            count(missing_tags) > 0
+            missing_tags_string := concat(", ", missing_tags)
+
+            result := {
+              "id": rule_id,
+              "keypath": sprintf("%s[%s]", [kind, name]),
+              "fix": sprintf("in `%s[%s].tags`, set missing tags keys `%s`", [kind, name, missing_tags_string]),
+            }
+          }
+
+          aggregate(tags) = res {
+            res := {tag_name | tags[tag_name]}
+          }
+
+          aggregate_list(tags) = res {
+            res := {x | x = tags[_]}
+          }
+
+
+        pattern_type: iac
+
+- id: SCR_AWS_003
+  name: Ensure google sql database instance ip_configuration ssl False
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_sql_database_instance$", kind)
+            resource.settings.ip_configuration.require_ssl == false
+
+            result := {
+              "id": "SCR_AWS_003", 
+              "keypath": "resource.settings.ip_configuration",
+              "fix": sprintf("in `%s[%s]`, should be market as `%s`", ["google_sql_database_instance", "ssl_required", "false"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+
+        pattern_type: iac
+- id: SCR_AWS_004
+  name: Google_iam_member should not have a group or user or serviceAccount
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_member$", kind)
+            regex.match("^user", resource.member) 
+            #regex.match("^group", resource.member)
+
+            result := {
+              "id": "SCR_AWS_004", 
+              "keypath": "resource.member",
+              "fix": sprintf("in `%s[%s]`, is not allowed as `%s`", ["google_sql_database_instance", "user", "user"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+
+        pattern_type: iac
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_member$", kind)
+            #regex.match("^user", resource.member) 
+            regex.match("^group", resource.member)
+
+            result := {
+              "id": "SCR_AWS_004", 
+              "keypath": "resource.member",
+              "fix": sprintf("in `%s[%s]`, is not allowed as `%s`", ["google_sql_database_instance", "group", "group"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+
+        pattern_type: iac
+
+- id: SCR_AWS_005
+  name: Google_iam_member should not have a role as serviceAccount
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_member$", kind)
+            regex.match("^roles/iam.serviceAccountUser.*", resource.role) 
+
+            result := {
+              "id": "SCR_AWS_005", 
+              "keypath": "resource.role",
+              "fix": sprintf("in `%s[%s]`, is not allowed as `%s`", ["google_sql_database_instance", "role", "serviceAccount"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+        pattern_type: iac
+
+- id: SCR_AWS_006
+  name: google project iam binding should not have roles owner 
+  tags:
+    - iac
+  applies_to:
+    - .*\.tf$
+  priority: -1
+  severity: high
+  pattern_group:
+    patterns:
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_binding$", kind)
+            regex.match("^roles\/owner$", resource.role)
+
+            result := {
+              "id": "SCR_AWS_006", 
+              "keypath": "resource.role",
+              "fix": sprintf("in %s[%s], is not allowed as %s", ["goole_iam_binding", "role", "role/owner"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+        pattern_type: iac
+
+      - pattern: |
+          package policies
+
+          Policy[result] {
+            resource := input[i].resource[kind][name]
+            regex.match("^google_project_iam_binding$", kind)
+            regex.match("^roles\/editor$", resource.role)
+
+            result := {
+              "id": "SCR_AWS_006", 
+              "keypath": "resource.role",
+              "fix": sprintf("in %s[%s], is not allowed as %s", ["goole_iam_binding", "role", "role/editor"]),
+              #"url": "https://...",
+            }
+          }
+          contains(colors, elem) {
+            colors[_] = elem
+          }
+        pattern_type: iac
