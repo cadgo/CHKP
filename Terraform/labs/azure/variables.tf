@@ -20,6 +20,12 @@ variable "rg_vnet2"{
   default = "rg_vnet2"
 }
 
+variable "rg_vnet3_fw"{
+  type = string
+  description = "resource group for vnet3 fw"
+  default = "rg_vnet3_fw"
+}
+
 variable "vnet1_definition"{
   type = map
   description = "vnet1 definition"
