@@ -8,6 +8,11 @@ variable "lab_tags" {
   }
 }
 
+variable "region"{
+  type = string
+  description = "Lab Region"
+  default = "west us"
+}
 variable "rg_vnet1"{
   type = string
   description = "resource group for vnet1"
