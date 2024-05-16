@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: mregshayl.azurecr.io/nginx:latest
+        image: nginx
         imagePullPolicy: Always
         ports:
         - containerPort: 80
