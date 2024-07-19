@@ -1,14 +1,40 @@
-variable "kubernetes_enabler"{
-  type = map
-  description = "define if Kubernetes must be enable in all projects"
-  default = {
-    k8s = true
+  variable "d9_gcp_api_enabler"{
+    type = map
+    description = "API required by DOME9 on GCP"
+    default = {
+      k8s_api = true
+      kms_api = true
+      iam_api = true
+      appeng_api = true
+      bigquery_api = true
+      admsdk_api = true
+      cloudfunc_api = true
+      cloudsql_api = true
+      cloudbigtable_api = true
+      pubsub_api = true
+      cloudmem_api = true
+      servusage_api = true
+      cloudfilestore_api = true
+      apikeys_api = true
+      cloudlogging_api = true
+      clouddns_api = true
+      cloudasset_api = true
+      esscontracts_api = true
+      accessapp_api = true
+    }
   }
-}
 
-variable "kms_enabler"{
-  type = map
-  descirption = "define if kms must be enable in all projects"
+  variable "kubernetes_enabler"{
+    type = map
+    description = "define if Kubernetes must be enable in all projects"
+    default = {
+      k8s = true
+    }
+  }
+
+  variable "kms_enabler"{
+    type = map
+  description = "define if kms must be enable in all projects"
   default = {
     kms = true
   }
@@ -24,7 +50,7 @@ variable "iam_enabler"{
 
 variable "appengine_enabler"{
   type = map
-  descirption = "define if appengine must be enable in all projects"
+  description = "define if appengine must be enable in all projects"
   default = {
     appeng = true
   }
