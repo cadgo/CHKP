@@ -24,3 +24,9 @@
     }
   }
 
+
+variable "d9_SA_Ac"{
+  type = string
+  description = "Service account used for D9 for GCP enrollment"
+  default = "d9onboard"
+}

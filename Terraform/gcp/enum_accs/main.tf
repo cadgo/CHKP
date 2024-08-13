@@ -159,3 +159,28 @@ resource "google_project_service" "accessapp_api" {
   disable_on_destroy = true
 }
 
+resource "google_service_account" "d9sa"{
+  account_id = var.d9_SA_Ac
+  display_name = "Dome9 onboarding account"
+  project = "ferrous-cogency-426918-s0"
+}
+
+resource "google_project_iam_binding" "binding_dome9_reader"{
+  project = "ferrous-cogency-426918-s0"
+  role = "roles/viewer"
+
+  members = [
+    "serviceAccount:${google_service_account.d9sa.email}"
+  ]
+}
+
+resource "google_service_account_key" "d9key"{
+  service_account_id = google_service_account.d9sa.name
+  public_key_type = "TYPE_X509_PEM_FILE"
+}
+
+#resource "google_service_account_iam_member" "dome9reader"{
+#  service_account_id = google_service_account.d9sa.name
+#  role = "roles/viewer"
+#  member = "serviceAccount:${google_service_account.d9sa.email}"
+#}

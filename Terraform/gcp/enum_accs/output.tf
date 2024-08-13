@@ -7,3 +7,8 @@ output "apis_modified"{
   value = local.apis_modified
   description = "all apis turned on for this terraform desployment"
 }
+
+output "d9keyused"{
+  value = google_service_account_key.d9key.private_key
+  sensitive = true
+}
