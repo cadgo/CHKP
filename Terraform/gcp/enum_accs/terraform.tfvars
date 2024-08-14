@@ -21,3 +21,4 @@ d9_gcp_api_enabler = {
 }
 
 d9_SA_Ac = "d9onboardterraform"
+gcp_main_project = "ferrous-cogency-426918-s0"

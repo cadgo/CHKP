@@ -30,3 +30,14 @@ variable "d9_SA_Ac"{
   description = "Service account used for D9 for GCP enrollment"
   default = "d9onboard"
 }
+
+variable "gcp_main_project"{
+  type = string
+  description = "main project for google used to create the first SA for CSPM and just binding the rest of the projects with the user"
+}
+
+variable "gcp_permissions"{
+  type = list(string)
+  description = "CSPM permissions for the service account"
+  default = ["roles/viewer", "roles/iam.securityReviewer", "roles/cloudasset.viewer"]
+}
