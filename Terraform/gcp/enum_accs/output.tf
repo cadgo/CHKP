@@ -1,11 +1,16 @@
-output "projects_id"{
-  value = data.google_projects.all_projects.projects[*].project_id
-  description = "all projects modified"
-}
-
 output "apis_modified"{
   value = local.apis_modified
   description = "all apis turned on for this terraform desployment"
+}
+
+output "main_project_utilized"{
+  value = var.gcp_main_project
+  description = "main project utilized by onboarding"
+}
+
+output "son_projects"{
+  value = local.short_project_list
+  description = "rest of the projects onboarded"
 }
 
 output "d9keyused"{

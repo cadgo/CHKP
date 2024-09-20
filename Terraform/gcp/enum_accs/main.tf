@@ -28,6 +28,13 @@ resource "local_file" "keystorage"{
   filename = "gcpkey.key"
 }
 
+resource "google_project_iam_member" "enroll_rest_members"{
+  count = length(local.short_project_list)
+  project = element(local.short_project_list, count.index)
+  role = "roles/viewer"
+  member = "serviceAccount:${google_service_account.d9sa.email}"
+}
+
 #resource "google_service_account_iam_member" "dome9reader"{
 #  service_account_id = google_service_account.d9sa.name
 #  role = "roles/viewer"
