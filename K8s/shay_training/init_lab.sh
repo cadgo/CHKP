@@ -40,7 +40,7 @@ kubectl create namespace checkpoint
 kubectl create secret docker-registry acr-secret --namespace checkpoint --docker-server=${ACR_NAME}.azurecr.io --docker-username=$USER_NAME --docker-password=$PASSWORD
  
 # Import images into the ACR
-az acr import --name $ACR_NAME --source docker.io/library/nginx:latest --image nginx:latest --resource-group myResourceGroup --username cadgoroot2 --password dckr_pat_9fxzOPmIS_j0xk25U_XbeBwFZOo
+az acr import --name $ACR_NAME --source docker.io/library/nginx:latest --image nginx:latest --resource-group myResourceGroup --username cdiazcadgo --password dckr_pat_wgcLmhbW_PvEgKcd35IJ8-Gu8UI
 az acr import --name $ACR_NAME --source docker.io/bkimminich/juice-shop:latest --image juice-shop:latest --resource-group myResourceGroup --username ccastilloporras --password dckr_pat_mIqAaIKaEw0-n_xOWl3e_K4elzk
  
 # Get the Tenant ID
